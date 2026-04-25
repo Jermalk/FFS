@@ -29,7 +29,7 @@ Goal: Verify that the generated code correctly implements the intended system lo
 
 ## Validation Checklist
 
-- [x] Water balance — analysed in detail; 5 structural issues found (see model_water.md)
+- [x] Water balance — analysed and fixed; all 5 issues resolved (see model_water.md)
 - [ ] Seasonal logic — do season modifiers produce realistic annual cycles?
 - [ ] Fire mechanics — are flammability values and fire danger thresholds scaled sensibly?
 - [ ] Sensitivity parameter — does it meaningfully differentiate Optimistic/Pessimistic scenarios?
@@ -49,3 +49,8 @@ Goal: Verify that the generated code correctly implements the intended system lo
 | 5e5912f | initial: project files + CLAUDE.md + PROGRESS.md |
 | 5e3a0fd | perf: pure rAF loop, DOM cache, cancel-on-pause |
 | b2edae6 | feat: WebGL2 renderer — RG8 texture, fragment shader colour mapping, dynamic viewport |
+| ba710ba | fix(W4): two-factor Horton infiltration — rain intensity + soil saturation |
+| 9b66dfe | fix(W1): waterlogging dieback — anaerobic stress, old-growth 1.5× multiplier |
+| 517fd15 | fix(W2): pGrowth bell-curve peaking at soilWater=0.70, 40% at saturation |
+| 986c997 | fix(W3): biomass-driven transpiration outflow, coeff 0.012 for ~58% equilibrium |
+| 1d9a032 | fix(W5): floodIndex from overflow — fire suppression + W1 mortality amplifier |
