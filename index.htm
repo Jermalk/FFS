@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forest Model v10: Climate Volatility</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #0d0d0d;
+            color: #ccc;
+            font-family: 'Roboto Mono', monospace;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* --- SIDEBAR --- */
+        #sidebar {
+            width: 320px;
+            min-width: 320px;
+            background: #151515;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #333;
+            z-index: 10;
+            overflow-y: auto;
+        }
+
+        /* --- VIEWPORT --- */
+        #viewport {
+            flex-grow: 1;
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+            border: 1px solid #333;
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+        }
+
+        /* --- UI ELEMENTS --- */
+        h2 { margin: 0 0 15px 0; color: #fff; font-size: 1.1rem; border-bottom: 2px solid #333; padding-bottom: 10px; }
+        
+        .panel {
+            background: #1e1e1e;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            border: 1px solid #333;
+        }
+
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        button { padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+        .btn-pause { background: #e1b12c; color: #000; }
+        .btn-step { background: #0984e3; color: #fff; }
+        .btn-reset { background: #d63031; color: #fff; width: 100%; margin-top: 5px;}
+
+        .metric-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; }
+        
+        label { display: block; font-size: 0.75rem; color: #888; margin-bottom: 5px; margin-top: 10px; }
+        input[type=range] { width: 100%; margin-bottom: 5px; cursor: pointer; }
+        
+        select {
+            width: 100%; padding: 8px; background: #333; color: #fff;
+            border: 1px solid #444; border-radius: 4px; margin-bottom: 10px; cursor: pointer;
+        }
+
+        #climate-display { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: center; }
+        .weather-box { background: #252525; padding: 8px; border-radius: 4px; }
+        .weather-val { font-size: 1.2rem; font-weight: bold; display: block; }
+        .weather-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
+
+        #year-overlay {
+            position: absolute; top: 20px; left: 20px;
+            font-size: 2rem; font-weight: bold; color: rgba(255, 255, 255, 0.8);
+            pointer-events: none; text-shadow: 2px 2px 4px #000;
+        }
+        
+        #soil-bar-container { width: 100%; height: 8px; background: #333; margin-top: 5px; border-radius: 4px; overflow: hidden; }
+        #soil-bar { width: 100%; height: 100%; background: #0abde3; transition: width 0.5s; }
+        
+        .flux-display { font-size: 0.7rem; text-align: right; margin-top: 2px; color: #aaa; font-family: monospace; }
+        .val-in { color: #00ff00; }
+        .val-out { color: #ff4757; }
+        .volatility-badge { font-size: 0.65rem; color: #fab1a0; text-align: center; margin-top: 5px;}
+
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div style="display:flex; align-items:center; justify-content:space-between;">
+            <h2>Eco-System v10</h2>
+        </div>
+
+        <div class="panel" style="border-left: 3px solid #6c5ce7;">
+            <label style="color:#a29bfe; margin-top:0;">Model Sensitivity</label>
+            <select id="in-scenario">
+                <option value="0.7">Optimistic</option>
+                <option value="1.0" selected>Normal (Standard Physics)</option>
+                <option value="1.5">Pessimistic</option>
+            </select>
+        </div>
+
+        <div class="panel">
+            <div class="btn-group">
+                <button class="btn-pause" id="btn-pause">Pause</button>
+                <button class="btn-step" id="btn-step">+1 Yr</button>
+            </div>
+            <label>Auto-Play Speed</label>
+            <input type="range" id="in-speed" min="1" max="60" value="60">
+        </div>
+
+        <div class="panel">
+            <div class="metric-row"><span>Year:</span> <span id="ui-year" class="metric-val">0</span></div>
+            <div class="metric-row"><span>Season:</span> <span id="ui-season" class="metric-val">Q1</span></div>
+            <button class="btn-reset" id="btn-reset">Reset World</button>
+        </div>
+
+        <div class="panel">
+            <div style="color: #ff9f43; font-weight:bold; margin-bottom:10px;">Climate Modifiers</div>
+            
+            <label>Temp Anomaly (+°C)</label>
+            <input type="range" id="in-temp-bias" min="0" max="100" value="0">
+            <div style="text-align:right; font-size:0.8rem; color:#ff9f43" id="val-temp-bias">+0.0°C</div>
+
+            <label>Rainfall Bias</label>
+            <input type="range" id="in-rain-bias" min="0" max="20" value="10">
+            <div style="text-align:right; font-size:0.8rem; color:#0abde3" id="val-rain-bias">Normal</div>
+        </div>
+
+        <div class="panel">
+            <div id="climate-display">
+                <div class="weather-box">
+                    <span id="cur-temp" class="weather-val" style="color:#ff6b6b">20°C</span>
+                    <span class="weather-label">Temp</span>
+                </div>
+                <div class="weather-box">
+                    <span id="cur-rain" class="weather-val" style="color:#48dbfb">50%</span>
+                    <span class="weather-label">Rain</span>
+                </div>
+            </div>
+            <div id="volatility-msg" class="volatility-badge">Stable Weather Pattern</div>
+            
+            <div style="margin-top: 15px;">
+                <div class="metric-row">
+                    <span style="font-size:0.75rem; color:#aaa;">Groundwater Reserve</span>
+                    <span id="val-soil" style="font-size:0.75rem; font-weight:bold;">100%</span>
+                </div>
+                <div id="soil-bar-container"><div id="soil-bar"></div></div>
+                <div class="flux-display">
+                    In: <span id="flux-in" class="val-in">+0.00</span> | 
+                    Out: <span id="flux-out" class="val-out">-0.00</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 10px; font-size: 0.8rem; text-align: center;">
+                Fire Danger: <span id="cur-danger" style="color: #fff; font-weight: bold;">LOW</span>
+            </div>
+        </div>
+
+        <div class="panel" style="font-size: 0.8rem;">
+            <div class="metric-row"><span>Biomass:</span> <span id="stat-biomass">0%</span></div>
+            <div class="metric-row"><span>Old Growth:</span> <span id="stat-old">0%</span></div>
+        </div>
+    </div>
+
+    <div id="viewport">
+        <canvas id="simCanvas"></canvas>
+        <div id="year-overlay">Year 0</div>
+    </div>
+
+    <script src="simulation.js"></script>
+</body>
+</html>
