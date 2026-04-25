@@ -12,6 +12,15 @@ Forest ecosystem cellular automaton simulator. Built by Jerzy (system designer) 
 
 Goal: Verify that the generated code correctly implements the intended system logic. Identify bugs, miscalibrated constants, and design gaps before adding new features.
 
+## Architecture Decisions
+
+### Rendering: WebGL2 (Option B — state texture + fragment shader)
+- Upload simulation state as a single RG8 texture (R=cell state 0/1/2, G=tree age) — 960KB/frame vs 1.92MB for RGBA pixel buffer
+- Fragment shader maps `(state, age)` → color, removing all color computation from the CPU hot loop
+- Dynamic viewport: canvas resizes to fill the available viewport; simulation grid stays at 800×600 internal resolution
+- NEAREST filtering preserves the pixel-art look without `image-rendering: pixelated` CSS hack
+- Letterboxing handled by `gl.viewport` to maintain 4:3 aspect ratio; letterbox bars cleared to background color
+
 ## Validation Checklist
 
 - [ ] Water balance — does normal-scenario inflow/outflow math sustain a healthy forest and stress it correctly under heat/drought?
