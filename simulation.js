@@ -291,11 +291,18 @@ class Ecosystem {
         if (this.fireDangerIndex > 1.0) pLightning = 0.0002;
         if (this.fireDangerIndex > 2.0) pLightning = 0.002;
 
-        // Dieback threshold: Optimistic < 0.091, Normal < 0.13, Pessimistic < 0.195
+        // Drought dieback — Optimistic threshold < 0.091, Normal < 0.13, Pessimistic < 0.195
         let diebackThreshold = 0.13 * sensitivity;
         let pDieback = 0;
         if (this.soilWater < diebackThreshold) pDieback = 0.02 * sensitivity; // Slow death
         if (this.soilWater < 0.01)             pDieback = 0.20 * sensitivity; // Total collapse
+
+        // Waterlogging dieback (W1) — mirrors drought logic on the upper moisture end.
+        // Saturated soil blocks oxygen from roots (anaerobic stress / root asphyxiation).
+        // Old-growth trees (age > 25) get 1.5× multiplier: deeper roots, deeper anaerobic zone.
+        let pWaterlog = 0;
+        if (this.soilWater > 0.92) pWaterlog = 0.01 * sensitivity; // Slow suffocation
+        if (this.soilWater > 0.98) pWaterlog = 0.08 * sensitivity; // Acute flooding
 
         for (let i = 0; i < this.size; i++) {
             const state = this.stateGrid[i];
@@ -314,7 +321,8 @@ class Ecosystem {
                 if (this.ticks % 4 === 0 && nextAge < 255) nextAge++;
                 if (nextAge > 25) oldGrowth++;
 
-                if (Math.random() < pDieback) {
+                const effectivePWaterlog = nextAge > 25 ? pWaterlog * 1.5 : pWaterlog;
+                if (Math.random() < pDieback || Math.random() < effectivePWaterlog) {
                     nextState = 0;
                     nextAge   = 0;
                 } else {

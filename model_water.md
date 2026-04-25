@@ -96,7 +96,9 @@ apply `pWaterlog × 1.5` for old-growth cells.
 
 **Cross-layer impact:** Vegetation (dieback path in update loop). No change to fire or climate.
 
-**Status:** Open
+**Status:** Done — commit `fix/W1`
+
+**Notes:** Implemented as two independent `Math.random()` checks so drought and waterlogging stress are additive for small probabilities. Old-growth multiplier applied to `effectivePWaterlog` per cell inside the loop. Combined effect at `soilWater=0.98`, old growth: `pDieback=0` + `0.08×1.5×sensitivity = 0.12` — roughly symmetric with acute drought collapse (0.20).
 
 ---
 
