@@ -25,7 +25,8 @@ Goal: Verify that the generated code correctly implements the intended system lo
 
 | File | Subsystem | Status |
 |---|---|---|
-| `model_water.md` | Water / soil moisture | 5 issues identified, fixes planned |
+| `model_water.md` | Water / soil moisture | All 5 fixes complete |
+| `test_water_model.md` | Water model behaviour tests | 5 scenarios defined, not yet run |
 
 ## Validation Checklist
 
