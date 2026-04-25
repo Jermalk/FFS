@@ -260,7 +260,14 @@ class Ecosystem {
         const heatMultiplier = Math.pow(1.07, Math.max(0, this.params.tempAnomaly));
         const tempEvap       = Math.max(0, (this.currentTemp - 5) / 600) * heatMultiplier * sensitivity;
 
-        const outflow = basalMetabolism + tempEvap;
+        // Transpiration: biomass-driven outflow (W3).
+        // Dense canopy pulls far more water than bare ground — creates self-regulating feedback.
+        // Uses previous tick's biomass count (one-tick lag: updateWeather runs before update).
+        // Coefficient 0.012 chosen for ~58% biomass equilibrium at normal conditions after W4.
+        const biomassFraction  = this.stats.biomass / this.size;
+        const transpirationRate = 0.012 * biomassFraction * Math.max(0, this.currentTemp / 20) * sensitivity;
+
+        const outflow = basalMetabolism + tempEvap + transpirationRate;
 
         // C. BALANCE
         this.lastInflow  = inflow;

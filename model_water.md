@@ -159,7 +159,9 @@ Note: `stats.biomass` is computed at end of `update()` but `updateWeather()` run
 
 **Cross-layer impact:** Water balance (outflow term). Vegetation indirectly (less soilWater → affects pGrowth, pDieback). No direct fire change.
 
-**Status:** Open
+**Status:** Done — commit `fix/W3`
+
+**Coefficient revision:** Proposed value was 0.02, reduced to 0.012. W4 had already lowered the annual moisture surplus from +0.040 to +0.027; using 0.02 on the reduced surplus would push biomass equilibrium down to ~35% (too sparse). At 0.012, equilibrium sits at ~58% biomass — within the calibration target. Formula uses `Math.max(0, currentTemp/20)` so transpiration goes to zero at or below 0°C (stomatal closure in frost).
 
 ---
 
