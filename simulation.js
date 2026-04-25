@@ -283,8 +283,17 @@ class Ecosystem {
         let biomass = 0, oldGrowth = 0;
         const sensitivity = this.params.sensitivity;
 
-        // Growth slows when sensitivity is high (fragile species grow slower under stress)
-        const pGrowth = (0.008 * this.soilWater) / sensitivity;
+        // Growth rate peaks at optimal soil moisture (~70%) and falls off on both sides (W2).
+        // Below optimal: linear rise. Above optimal: quadratic suppression to 40% at soilWater=1.
+        const OPTIMAL_MOISTURE = 0.70;
+        let moistureFactor;
+        if (this.soilWater <= OPTIMAL_MOISTURE) {
+            moistureFactor = this.soilWater / OPTIMAL_MOISTURE;
+        } else {
+            const excess = (this.soilWater - OPTIMAL_MOISTURE) / (1 - OPTIMAL_MOISTURE);
+            moistureFactor = 1 - (excess * excess * 0.6);
+        }
+        const pGrowth = 0.008 * moistureFactor / sensitivity;
 
         // Lightning ignition rate scales with fire danger
         let pLightning = 0.00001;

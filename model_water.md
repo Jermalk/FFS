@@ -128,7 +128,9 @@ At `soilWater = 1.0`: `moisture_factor = 1 - (1 × 0.6) = 0.4`, so `pGrowth = 0.
 
 **Cross-layer impact:** Vegetation (growth path in update loop). No change to fire or climate.
 
-**Status:** Open
+**Status:** Done — commit `fix/W2`
+
+**Notes:** Quadratic suppression coefficient 0.6 chosen so pGrowth at full saturation = 40% of peak — growth is suppressed but not zeroed (flood-tolerant seedlings can still establish). Drought side (soilWater ≤ 0.70) is mathematically identical to the old linear formula scaled to peak at 0.70 instead of 1.0.
 
 ---
 
