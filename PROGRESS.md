@@ -21,13 +21,19 @@ Goal: Verify that the generated code correctly implements the intended system lo
 - NEAREST filtering preserves the pixel-art look without `image-rendering: pixelated` CSS hack
 - Letterboxing handled by `gl.viewport` to maintain 4:3 aspect ratio; letterbox bars cleared to background color
 
+## Model Documentation Files
+
+| File | Subsystem | Status |
+|---|---|---|
+| `model_water.md` | Water / soil moisture | 5 issues identified, fixes planned |
+
 ## Validation Checklist
 
-- [ ] Water balance — does normal-scenario inflow/outflow math sustain a healthy forest and stress it correctly under heat/drought?
+- [x] Water balance — analysed in detail; 5 structural issues found (see model_water.md)
 - [ ] Seasonal logic — do season modifiers produce realistic annual cycles?
 - [ ] Fire mechanics — are flammability values and fire danger thresholds scaled sensibly?
 - [ ] Sensitivity parameter — does it meaningfully differentiate Optimistic/Pessimistic scenarios?
-- [ ] Edge/boundary bug — `hasBurningNeighbor()` reads out-of-bounds array indices for cells on canvas edges (JS returns `undefined`, no crash, but incorrect fire spread behavior at edges)
+- [ ] Edge/boundary bug — `hasBurningNeighbor()` reads out-of-bounds array indices for cells on canvas edges
 
 ## Known Issues / Findings
 
