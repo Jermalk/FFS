@@ -42,3 +42,4 @@ Goal: Verify that the generated code correctly implements the intended system lo
 |--------|-------------|
 | 5e5912f | initial: project files + CLAUDE.md + PROGRESS.md |
 | 5e3a0fd | perf: pure rAF loop, DOM cache, cancel-on-pause |
+| b2edae6 | feat: WebGL2 renderer — RG8 texture, fragment shader colour mapping, dynamic viewport |
