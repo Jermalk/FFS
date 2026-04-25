@@ -43,6 +43,7 @@ class Ecosystem {
         this.currentTemp    = 20;
         this.currentRain    = 0.5;
         this.fireDangerIndex = 0;
+        this.floodIndex      = 0;
 
         // Loop state
         this.rafId         = null;
@@ -273,12 +274,19 @@ class Ecosystem {
         this.lastInflow  = inflow;
         this.lastOutflow = outflow;
         this.soilWater  += (inflow - outflow);
+
+        // Compute overflow BEFORE clamping — captures surface ponding signal (W5).
+        // floodIndex 0→1 over 0.05 units of overflow (small overflow = full surface flood).
+        const overflow   = Math.max(0, this.soilWater - 1.0);
+        this.floodIndex  = Math.min(1, overflow * 20);
         this.soilWater   = Math.max(0, Math.min(1, this.soilWater));
 
         // --- FIRE DANGER ---
         const tempStress = Math.max(0, (this.currentTemp - 15) / 25);
         const soilStress = 1.0 - this.soilWater;
         this.fireDangerIndex = ((tempStress * 1.5) + (soilStress * 2.5)) * sensitivity;
+        // Surface flooding suppresses ignition — water on ground blocks fire spread (W5)
+        this.fireDangerIndex *= Math.max(0, 1 - this.floodIndex);
     }
 
     update() {
@@ -319,6 +327,8 @@ class Ecosystem {
         let pWaterlog = 0;
         if (this.soilWater > 0.92) pWaterlog = 0.01 * sensitivity; // Slow suffocation
         if (this.soilWater > 0.98) pWaterlog = 0.08 * sensitivity; // Acute flooding
+        // Active surface flooding amplifies root mortality beyond saturation alone (W5)
+        pWaterlog += this.floodIndex * 0.04 * sensitivity;
 
         for (let i = 0; i < this.size; i++) {
             const state = this.stateGrid[i];

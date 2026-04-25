@@ -221,7 +221,9 @@ this.floodIndex = Math.min(1, overflow × 20)     // 0→1 over 0.05 overflow
 
 **Cross-layer impact:** Fire model (`fireDangerIndex` reduction). Vegetation (feeds W1 waterlogging). No climate change.
 
-**Status:** Open
+**Status:** Done — commit `fix/W5`
+
+**Notes:** floodIndex scales 0→1 over just 0.05 overflow — after W4 genuine overflow is rare, so when it does occur the signal is intentionally strong. Fire suppression is multiplicative (`× (1 − floodIndex)`) so it zeroes fire danger completely at full flooding. W1 amplification adds `floodIndex × 0.04 × sensitivity` to pWaterlog; at peak flood + acute saturation, combined pWaterlog reaches 0.12 (old growth: 0.18).
 
 ---
 
