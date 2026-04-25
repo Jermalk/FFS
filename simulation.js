@@ -56,6 +56,28 @@ class Ecosystem {
         this.currentRain = 0.5;
         this.fireDangerIndex = 0;
 
+        // Loop state
+        this.rafId = null;
+        this.lastTimestamp = 0;
+
+        // Cached DOM references — avoid getElementById on every tick
+        this.els = {
+            year:        document.getElementById('ui-year'),
+            season:      document.getElementById('ui-season'),
+            temp:        document.getElementById('cur-temp'),
+            rain:        document.getElementById('cur-rain'),
+            volatility:  document.getElementById('volatility-msg'),
+            danger:      document.getElementById('cur-danger'),
+            soilBar:     document.getElementById('soil-bar'),
+            soilVal:     document.getElementById('val-soil'),
+            fluxIn:      document.getElementById('flux-in'),
+            fluxOut:     document.getElementById('flux-out'),
+            biomass:     document.getElementById('stat-biomass'),
+            oldGrowth:   document.getElementById('stat-old'),
+            yearOverlay: document.getElementById('year-overlay'),
+            btnPause:    document.getElementById('btn-pause'),
+        };
+
         this.init();
         this.loop();
     }
@@ -90,9 +112,15 @@ class Ecosystem {
 
     togglePause() {
         this.isPaused = !this.isPaused;
-        const btn = document.getElementById('btn-pause');
-        btn.innerText = this.isPaused ? "Resume" : "Pause";
-        btn.style.background = this.isPaused ? "#4cd137" : "#e1b12c";
+        this.els.btnPause.innerText = this.isPaused ? "Resume" : "Pause";
+        this.els.btnPause.style.background = this.isPaused ? "#4cd137" : "#e1b12c";
+        if (this.isPaused) {
+            cancelAnimationFrame(this.rafId);
+            this.rafId = null;
+        } else {
+            this.lastTimestamp = 0;
+            this.rafId = requestAnimationFrame((ts) => this.loop(ts));
+        }
     }
 
     stepTick() { this.update(); this.draw(); this.updateUI(); }
@@ -271,48 +299,49 @@ class Ecosystem {
 
     updateUI() {
         const total = this.size || 1;
-        document.getElementById('ui-year').innerText = this.year;
-        document.getElementById('ui-season').innerText = ['Spring','Summer','Autumn','Winter'][this.season];
-        
-        document.getElementById('cur-temp').innerText = this.currentTemp.toFixed(1) + "°C";
-        document.getElementById('cur-rain').innerText = (this.currentRain * 100).toFixed(0) + "%";
-        
-        const vEl = document.getElementById('volatility-msg');
-        if(this.params.tempAnomaly > 5) vEl.innerText = "⚠ Extreme Climate Instability";
-        else if(this.params.tempAnomaly > 2) vEl.innerText = "High Weather Volatility";
-        else vEl.innerText = "Stable Weather Pattern";
+        const e = this.els;
 
-        const dEl = document.getElementById('cur-danger');
+        e.year.innerText = this.year;
+        e.season.innerText = ['Spring','Summer','Autumn','Winter'][this.season];
+        e.temp.innerText = this.currentTemp.toFixed(1) + "°C";
+        e.rain.innerText = (this.currentRain * 100).toFixed(0) + "%";
+
+        if(this.params.tempAnomaly > 5) e.volatility.innerText = "⚠ Extreme Climate Instability";
+        else if(this.params.tempAnomaly > 2) e.volatility.innerText = "High Weather Volatility";
+        else e.volatility.innerText = "Stable Weather Pattern";
+
         const d = this.fireDangerIndex;
-        if(d < 0.5) { dEl.innerText="LOW"; dEl.style.color="#00ff00"; }
-        else if(d < 1.0) { dEl.innerText="MODERATE"; dEl.style.color="#ffff00"; }
-        else if(d < 1.5) { dEl.innerText="HIGH"; dEl.style.color="#ff8800"; }
-        else { dEl.innerText="EXTREME"; dEl.style.color="#ff0000"; }
+        if(d < 0.5) { e.danger.innerText="LOW"; e.danger.style.color="#00ff00"; }
+        else if(d < 1.0) { e.danger.innerText="MODERATE"; e.danger.style.color="#ffff00"; }
+        else if(d < 1.5) { e.danger.innerText="HIGH"; e.danger.style.color="#ff8800"; }
+        else { e.danger.innerText="EXTREME"; e.danger.style.color="#ff0000"; }
 
-        const bar = document.getElementById('soil-bar');
         const soilPct = (this.soilWater * 100).toFixed(0);
-        bar.style.width = soilPct + "%";
-        document.getElementById('val-soil').innerText = soilPct + "%";
-        if(this.soilWater < 0.2) bar.style.background = "#d63031"; 
-        else bar.style.background = "#0abde3";
+        e.soilBar.style.width = soilPct + "%";
+        e.soilVal.innerText = soilPct + "%";
+        e.soilBar.style.background = this.soilWater < 0.2 ? "#d63031" : "#0abde3";
 
-        document.getElementById('flux-in').innerText = "+" + this.lastInflow.toFixed(3);
-        document.getElementById('flux-out').innerText = "-" + this.lastOutflow.toFixed(3);
+        e.fluxIn.innerText = "+" + this.lastInflow.toFixed(3);
+        e.fluxOut.innerText = "-" + this.lastOutflow.toFixed(3);
 
-        document.getElementById('stat-biomass').innerText = ((this.stats.biomass/total)*100).toFixed(0)+"%";
-        document.getElementById('stat-old').innerText = ((this.stats.oldGrowth/total)*100).toFixed(0)+"%";
-        document.getElementById('year-overlay').innerText = `Year ${this.year}`;
+        e.biomass.innerText = ((this.stats.biomass/total)*100).toFixed(0)+"%";
+        e.oldGrowth.innerText = ((this.stats.oldGrowth/total)*100).toFixed(0)+"%";
+        e.yearOverlay.innerText = `Year ${this.year}`;
     }
 
-    loop() {
-        setTimeout(() => {
-            if (!this.isPaused) {
-                this.update();
-                this.draw();
-                this.updateUI();
-            }
-            requestAnimationFrame(() => this.loop());
-        }, 1000 / this.params.speed);
+    loop(timestamp = 0) {
+        const elapsed = timestamp - this.lastTimestamp;
+        const interval = 1000 / this.params.speed;
+
+        if (elapsed >= interval) {
+            // Subtract remainder to prevent drift when a frame arrives late
+            this.lastTimestamp = timestamp - (elapsed % interval);
+            this.update();
+            this.draw();
+            this.updateUI();
+        }
+
+        this.rafId = requestAnimationFrame((ts) => this.loop(ts));
     }
 }
 
