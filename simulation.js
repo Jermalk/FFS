@@ -239,9 +239,16 @@ class Ecosystem {
         // --- PHYSICS: DECOUPLED METABOLISM ---
         const sensitivity = this.params.sensitivity;
 
-        // A. INFLOW
-        let absorptionEfficiency = 1.0;
-        if (this.currentRain > 0.8) absorptionEfficiency = 0.6; // Runoff at heavy rain
+        // A. INFLOW — Horton overland flow (W4)
+        // Infiltration degrades with both rain intensity AND soil saturation.
+        // Dry soil absorbs heavy rain; saturated soil rejects even light rain.
+        const rainFactor = this.currentRain > 0.6
+            ? 1 - ((this.currentRain - 0.6) / 0.4) * 0.5   // 1.0 → 0.5 as rain 0.6→1.0
+            : 1.0;
+        const soilFactor = this.soilWater > 0.8
+            ? 1 - ((this.soilWater - 0.8) / 0.2) * 0.8     // 1.0 → 0.2 as soilWater 0.8→1.0
+            : 1.0;
+        const absorptionEfficiency = rainFactor * soilFactor;
         const inflow = this.currentRain * 0.15 * absorptionEfficiency;
 
         // B. OUTFLOW

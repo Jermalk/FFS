@@ -187,7 +187,9 @@ At `rain=0.5, soilWater=0.5`: efficiency = `1.0 × 1.0 = 1.00` (unchanged).
 
 **Cross-layer impact:** Water inflow only. Tightens the upper bound on soilWater.
 
-**Status:** Open
+**Status:** Done — commit `fix/W4`
+
+**Observed calibration shift:** Annual net at normal conditions drops from +0.040 to ~+0.027/year. Equilibrium soilWater at normal settings expected to settle ~0.55–0.65 instead of ~0.70+. At max rain bias with soilWater=1.0 the net becomes negative (inflow 0.015 < outflow 0.047 in spring), creating a natural drainage ceiling.
 
 ---
 
