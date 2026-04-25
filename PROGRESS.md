@@ -31,4 +31,5 @@ Goal: Verify that the generated code correctly implements the intended system lo
 
 | Commit | Description |
 |--------|-------------|
-| initial | Initial project files: index.htm, simulation.js, CLAUDE.md, PROGRESS.md |
+| 5e5912f | initial: project files + CLAUDE.md + PROGRESS.md |
+| 5e3a0fd | perf: pure rAF loop, DOM cache, cancel-on-pause |
