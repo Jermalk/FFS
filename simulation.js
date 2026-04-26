@@ -219,15 +219,13 @@ function renderChart() {
     const ML = 44, MR = 8, MB = 16;
     const chartW = w - ML - MR;
     const chartH = h - MB;
-    const bH  = Math.floor(chartH / 4);  // band height
-    const PAD = 16;                       // vertical padding within each band
+    const bH  = Math.floor(chartH / 4);
+    const PAD = 16;
 
-    // Downsample to at most one point per horizontal pixel
     const pts  = Math.min(n, chartW);
     const span = Math.max(1, pts - 1);
     function getVal(arr, i) { return arr[Math.floor(i * (n - 1) / span)]; }
 
-    // Dynamic temperature range
     let tMin = Infinity, tMax = -Infinity;
     for (let i = 0; i < n; i++) {
         if (history.temp[i] < tMin) tMin = history.temp[i];
@@ -244,18 +242,39 @@ function renderChart() {
         { title: 'FIRE DANGER',       series: [{ arr: history.danger,    color: '#ff9f43', yMin: 0,    yMax: 3,    lbl: null   }] },
     ];
 
+    const y0yr     = history.year[0];
+    const yNyr     = history.year[n - 1];
+    const yearSpan = Math.max(1, yNyr - y0yr);
+    function yearToX(yr) { return ML + ((yr - y0yr) / yearSpan) * chartW; }
+
+    // P3 — proportional year gridlines (drawn before bands so they appear underneath)
+    let gridInterval = 5;
+    if      (yearSpan > 1000) gridInterval = 200;
+    else if (yearSpan >  400) gridInterval = 100;
+    else if (yearSpan >  150) gridInterval =  50;
+    else if (yearSpan >   50) gridInterval =  25;
+    else if (yearSpan >   20) gridInterval =  10;
+    const firstGrid = Math.ceil(y0yr / gridInterval) * gridInterval;
+
+    ctx.strokeStyle = '#1e1e1e';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([]);
+    for (let yr = firstGrid; yr <= yNyr; yr += gridInterval) {
+        const gx = yearToX(yr);
+        ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, chartH); ctx.stroke();
+    }
+
+    // Bands
     bands.forEach(({ title, series }, bi) => {
         const y0 = bi * bH;
         const pH = bH - PAD * 2;
         const { yMin, yMax } = series[0];
         const range = yMax - yMin;
 
-        // Band separator line
         ctx.strokeStyle = '#383838';
         ctx.lineWidth   = 1;
         ctx.beginPath(); ctx.moveTo(ML, y0); ctx.lineTo(w - MR, y0); ctx.stroke();
 
-        // Grid lines at 0 / 50 / 100 % of band range
         ctx.setLineDash([2, 4]);
         [0, 0.5, 1].forEach(t => {
             const py  = y0 + PAD + (1 - t) * pH;
@@ -271,14 +290,12 @@ function renderChart() {
         });
         ctx.setLineDash([]);
 
-        // Band title (left)
         ctx.fillStyle    = '#c0c0c0';
         ctx.font         = '12px Roboto Mono, monospace';
         ctx.textAlign    = 'left';
         ctx.textBaseline = 'top';
         ctx.fillText(title, ML + 4, y0 + 3);
 
-        // Series legend (right-aligned, only when lbl is set)
         let lx = w - MR - 4;
         [...series].reverse().forEach(({ color, lbl }) => {
             if (!lbl) return;
@@ -293,7 +310,6 @@ function renderChart() {
             lx -= 16;
         });
 
-        // Draw each series line
         series.forEach(({ arr, color, yMin: sMin, yMax: sMax }) => {
             const sRange = Math.max(sMax - sMin, 1e-9);
             ctx.strokeStyle = color;
@@ -309,15 +325,48 @@ function renderChart() {
         });
     });
 
-    // X axis: year labels at left, centre, right
-    const y0yr = history.year[0];
-    const yNyr = history.year[n - 1];
-    ctx.fillStyle    = '#888';
-    ctx.font         = '10px Roboto Mono, monospace';
+    // P3 — year axis labels at each gridline
+    ctx.font         = '9px Roboto Mono, monospace';
     ctx.textBaseline = 'bottom';
-    ctx.textAlign = 'left';   ctx.fillText('Yr ' + y0yr,                          ML,            h);
-    ctx.textAlign = 'center'; ctx.fillText('Yr ' + Math.round((y0yr + yNyr) / 2), ML + chartW/2, h);
-    ctx.textAlign = 'right';  ctx.fillText('Yr ' + yNyr,                          w - MR,        h);
+    ctx.fillStyle    = '#666';
+    ctx.textAlign    = 'left';
+    ctx.fillText('Yr ' + y0yr, ML, h);
+    for (let yr = firstGrid; yr <= yNyr; yr += gridInterval) {
+        const gx = yearToX(yr);
+        if (gx - ML < 28) continue;
+        ctx.textAlign = gx > ML + chartW - 20 ? 'right' : 'center';
+        ctx.fillText(yr, gx, h);
+    }
+
+    // P4 — "Now" cursor: faint vertical at the rightmost data point
+    const nowX = ML + (pts - 1) * chartW / span;
+    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+    ctx.lineWidth   = 1.5;
+    ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(nowX, 0); ctx.lineTo(nowX, chartH); ctx.stroke();
+    ctx.setLineDash([]);
+
+    // P2 — parameter change event markers
+    events.forEach(ev => {
+        if (ev.year < y0yr || ev.year > yNyr + gridInterval) return;
+        const ex = Math.min(yearToX(ev.year), ML + chartW);
+        const nearRight = ex > ML + chartW * 0.75;
+
+        ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+        ctx.lineWidth   = 1;
+        ctx.setLineDash([3, 4]);
+        ctx.beginPath(); ctx.moveTo(ex, 0); ctx.lineTo(ex, chartH); ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.font         = '9px Roboto Mono, monospace';
+        ctx.textBaseline = 'top';
+        ctx.textAlign    = nearRight ? 'right' : 'left';
+        const lx = nearRight ? ex - 3 : ex + 3;
+        ev.labels.forEach(({ text, color }, i) => {
+            ctx.fillStyle = color;
+            ctx.fillText(text, lx, 4 + i * 12);
+        });
+    });
 }
 
 // ---- App -------------------------------------------------------------------
