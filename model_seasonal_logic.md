@@ -288,14 +288,21 @@ Season start (S4)
 
 `test_seasonal.htm` — 42 checks, 6 scenarios. Requires `python3 -m http.server 8080` (ES modules blocked on `file://`).
 
-| Scenario | What it checks | S-fixes covered |
-|---|---|---|
-| SL-1 | Preset arithmetic: sum(tMod)=0, sum(rMod)=0, driest rain ≥ 0.05 | S1, S2, S3 |
-| SL-2 | Fresh engine: ticks=3/season=3/year=0; first tick → Spring/Year 1 | S4 |
-| SL-3 | 50yr runtime mean ≈ BASE_TEMP ±1°C, BASE_RAIN ±0.04 for 3 presets | S2, S3 |
-| SL-4 | Boreal winter tick: zero growth; boreal summer tick: ~3800 trees | S5 |
-| SL-5 | Temp ordering Boreal < Temperate < Mediterranean < Tropical; semi-arid driest soil | S6 |
-| SL-6 | setClimate() resets year=0, ticks=3, season=3 | S6 |
+| Scenario | What it checks | S-fixes covered | Result |
+|---|---|---|---|
+| SL-1 | Preset arithmetic: sum(tMod)=0, sum(rMod)=0, driest rain ≥ 0.05 | S1, S2, S3 | 15/15 PASS |
+| SL-2 | Fresh engine: ticks=3/season=3/year=0; first tick → Spring/Year 1 | S4 | 7/7 PASS |
+| SL-3 | 50yr runtime mean ≈ BASE_TEMP ±1°C, BASE_RAIN ±0.04 for 3 presets | S2, S3 | 6/6 PASS |
+| SL-4 | Boreal winter tick: zero growth; boreal summer tick: ~3800 trees | S5 | 6/6 PASS |
+| SL-5 | Temp ordering Boreal < Temperate < Mediterranean < Tropical; semi-arid driest soil | S6 | 4/4 PASS |
+| SL-6 | setClimate() resets year=0, ticks=3, season=3 | S6 | 4/4 PASS |
+
+**All 42 checks passed** (run 2026-04-26).
+
+**Observed values of note:**
+- Boreal summer grew 3807 trees in one tick (predicted ~3840 — within expected variance)
+- Temperate soil water 90% after 50yr — higher than the calibration target of 50–70%; flagged as future calibration work
+- Climate temp ordering exact: Boreal 4.0°C → Temperate 12.0°C → Mediterranean 18.0°C → Tropical 27.0°C
 
 ---
 

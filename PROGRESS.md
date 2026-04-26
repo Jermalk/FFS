@@ -28,7 +28,7 @@ Goal: Verify that the generated code correctly implements the intended system lo
 | `model_water.md` | Water / soil moisture | All 5 fixes complete |
 | `test_water_model.md` | Water model behaviour tests | 5 scenarios defined, not yet run |
 | `model_seasonal_logic.md` | Seasonal / climate subsystem | 6 issues fixed (S1–S6) |
-| `test_seasonal.htm` | Seasonal logic test runner | 42 checks across SL-1–SL-6; run via http-server |
+| `test_seasonal.htm` | Seasonal logic test runner | 42/42 checks passed (2026-04-26) |
 
 ## Validation Checklist
 
