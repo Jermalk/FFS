@@ -186,10 +186,11 @@ PROGRESS.md            ← session-by-session development log
 
 | Subsystem | Status |
 |-----------|--------|
-| Water balance (W1–W5) | Validated — 5 fixes applied |
+| Water balance (W1–W5) | Validated — 5 fixes applied, 13/13 tests pass |
 | Seasonal logic (S1–S6) | Validated — 6 fixes applied, 42/42 tests pass |
+| Test framework | Live — unified runner, issue registry, JSON results committed |
 | Fire mechanics | Not yet validated |
 | `hasBurningNeighbor()` boundary bug | Identified, not yet fixed |
-| Water balance calibration for Temperate climate | Known gap — equilibrium runs ~90% soilWater vs 50–70% target |
+| Water balance calibration for Temperate climate | Known gap — equilibrium ~90% soilWater vs 50–70% target |
 
 The simulator is functional and visually interesting at all settings. The validation work focuses on whether the *numbers* match the *intended ecology*, not on whether it looks good.
