@@ -48,7 +48,17 @@ The simulation uses a **cellular automaton** on an 800×600 grid rendered to a `
 
 ## Workflow
 
-- **Each logical change gets its own commit.** Keep commits small and focused so individual changes can be reviewed and reverted independently.
+- **Each logical change gets its own commit.** Keep commits small and focused so individual changes can be reviewed and reverted independently. Run commits automatically — do not ask the user to do it manually.
 - **Update `PROGRESS.md`** at the end of each session — note what was validated, what was changed, and any new findings.
 - **Update `PROGRESS.md` before context compaction.** If the conversation is approaching context limits (compaction imminent), write and commit a `PROGRESS.md` update immediately, before the compaction occurs.
+- **Update `README.md`** at the end of each session to reflect any new features, controls, test coverage, or status changes. README is the human-facing document for users without LLM support — keep it accurate and complete.
 - **Commit message format:** short imperative subject line describing *what and why* (e.g. `fix: clamp hasBurningNeighbor to grid bounds`).
+
+## `/session-wrap` command
+
+When the user types `/session-wrap`, perform all end-of-session housekeeping in this order:
+
+1. **Update `PROGRESS.md`** — add a new session block: what was built, what was validated, what failed, what is known-pending. Include any calibration observations or design decisions made.
+2. **Update `README.md`** — reflect any new features, controls, test results, or status changes visible to a human user.
+3. **Commit both files** with message `docs: session wrap — <one-line summary>`.
+4. Report back: what was written, what the next session should pick up first.
