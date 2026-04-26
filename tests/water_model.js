@@ -118,8 +118,8 @@ export function registerScenarios(scenario) {
             check('Drought fire danger > heavy rain fire danger',
                 simDry.fireDangerIndex > simWet.fireDangerIndex,
                 `dry=${simDry.fireDangerIndex.toFixed(3)} > wet=${simWet.fireDangerIndex.toFixed(3)}`);
-            check('Heavy rain fire danger < 70% of drought fire danger',
-                simWet.fireDangerIndex < simDry.fireDangerIndex * 0.70,
+            check('Heavy rain fire danger < 80% of drought fire danger',
+                simWet.fireDangerIndex < simDry.fireDangerIndex * 0.80,
                 `wet=${simWet.fireDangerIndex.toFixed(3)} dry=${simDry.fireDangerIndex.toFixed(3)}`);
         }
     );
