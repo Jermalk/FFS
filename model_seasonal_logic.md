@@ -100,7 +100,9 @@ Effective long-run average rain = `(0.5 − 0.10) × rainBias = 0.40 × rainBias
 Design seasonal modifiers so their mean = 0, making BASE_RAIN truly the annual average.
 Each climate preset (see ISSUE-S6) must satisfy: `sum(rMod[0..3]) = 0`.
 
-**Status:** Open — part of climate preset redesign
+**Status:** Done — commit `fix(S2)`
+
+**Notes:** Spring rMod 0.20→0.30, Autumn rMod -0.10→-0.05, Winter rMod 0.10→0.20. Sum: 0.30 - 0.45 - 0.05 + 0.20 = 0.00. BASE_RAIN=0.50 is now the true annual mean. Effective rains: Spring 0.80, Summer 0.05, Autumn 0.45, Winter 0.70.
 
 ---
 
