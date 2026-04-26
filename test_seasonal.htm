@@ -47,6 +47,14 @@ function clearGrid(sim) {
     sim.stats = { biomass: 0, oldGrowth: 0 };
 }
 
+// stats.biomass counts trees that WERE trees at tick start; new trees grown this tick
+// are in stateGrid after the double-buffer swap but not yet in stats. Count directly.
+function countTrees(sim) {
+    let n = 0;
+    for (let i = 0; i < sim.size; i++) if (sim.stateGrid[i] === 1) n++;
+    return n;
+}
+
 let passed = 0, failed = 0;
 const out = document.getElementById('output');
 
@@ -124,7 +132,7 @@ scenario('SL-2 — Season cycling & startup (S4 regression)', (val, check) => {
     check('After 1 tick: season = 0 (Spring)', sim.season === 0, `got ${sim.season}`);
     check('After 1 tick: year = 1',            sim.year   === 1, `got ${sim.year}`);
 
-    for (let i = 0; i < 3; i++) sim.update();
+    for (let i = 0; i < 4; i++) sim.update();  // 4 more = full cycle back to Spring
     val('After full year — season', `${sim.season} (${SEASON_NAMES[sim.season]})`);
     val('After full year — year',   sim.year);
 
@@ -187,11 +195,11 @@ scenario('SL-4 — Winter dormancy blocks growth; summer allows growth (S5 regre
 
     val('Winter season',             `${simW.season} (${SEASON_NAMES[simW.season]})`);
     val('Winter currentTemp',        simW.currentTemp.toFixed(1) + '°C');
-    val('New trees after winter tick', simW.stats.biomass);
+    val('New trees after winter tick', countTrees(simW));
 
-    check('Winter season index = 3',          simW.season      === 3, `got ${simW.season}`);
+    check('Winter season index = 3',           simW.season      === 3, `got ${simW.season}`);
     check('Winter temp < 5°C (dormancy zone)', simW.currentTemp  < 5,  `got ${simW.currentTemp.toFixed(1)}°C`);
-    check('Zero new trees in boreal winter',  simW.stats.biomass === 0, `got ${simW.stats.biomass}`);
+    check('Zero new trees in boreal winter',   countTrees(simW) === 0,  `got ${countTrees(simW)}`);
 
     // Summer: ticks=0 → update() → ticks=1, season=1%4=1 (Summer)
     const simS = new SimulationEngine(800, 600);
@@ -203,11 +211,11 @@ scenario('SL-4 — Winter dormancy blocks growth; summer allows growth (S5 regre
 
     val('Summer season',             `${simS.season} (${SEASON_NAMES[simS.season]})`);
     val('Summer currentTemp',        simS.currentTemp.toFixed(1) + '°C');
-    val('New trees after summer tick', simS.stats.biomass);
+    val('New trees after summer tick', countTrees(simS));
 
-    check('Summer season index = 1',           simS.season      === 1,    `got ${simS.season}`);
-    check('Summer temp ≥ 5°C (growth zone)',   simS.currentTemp  >= 5,    `got ${simS.currentTemp.toFixed(1)}°C`);
-    check('Growth in boreal summer (> 1000)',  simS.stats.biomass > 1000,  `got ${simS.stats.biomass}`);
+    check('Summer season index = 1',          simS.season      === 1,           `got ${simS.season}`);
+    check('Summer temp ≥ 5°C (growth zone)',  simS.currentTemp  >= 5,           `got ${simS.currentTemp.toFixed(1)}°C`);
+    check('Growth in boreal summer (> 1000)', countTrees(simS)  > 1000,         `got ${countTrees(simS)}`);
 });
 
 // ---------------------------------------------------------------------------
