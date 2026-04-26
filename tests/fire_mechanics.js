@@ -92,14 +92,17 @@ export function registerScenarios(scenario) {
     // Uses a 100×100 grid, 15-cell ignition line, 15 ticks of spread.
     // Old-growth (baseFlam=0.05) should lose significantly less cover than
     // saplings (baseFlam=0.80).
+    // Conditions: ta=0, rainBias=2.0 — keeps soilWater stable (soilStress stays
+    // near 0, pLightning < 1/tick) so the test isolates neighbour-spread age
+    // resistance and is not swamped by drought-driven lightning ignitions.
     // -------------------------------------------------------------------------
     scenario('FM-3', 'Age-based resistance — old-growth forest sustains less fire damage than saplings',
         ['F4'],
         ({ val, check }) => {
             function burntInForest(fillAge) {
                 const sim = new SimulationEngine(100, 100);
-                sim.params.tempAnomaly = 5;
-                sim.params.rainBias    = 0.5;
+                sim.params.tempAnomaly = 0;
+                sim.params.rainBias    = 2.0;
                 for (let i = 0; i < sim.size; i++) {
                     sim.stateGrid[i] = 1;
                     sim.ageGrid[i]   = fillAge;
