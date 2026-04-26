@@ -74,8 +74,8 @@ export class SimulationEngine {
         let tMod = 0, rMod = 0;
         if      (this.season === 0) { tMod =  -5; rMod =  0.30; }
         else if (this.season === 1) { tMod =  12; rMod = -0.45; }
-        else if (this.season === 2) { tMod =   0; rMod = -0.05; }
-        else if (this.season === 3) { tMod = -10; rMod =  0.20; }
+        else if (this.season === 2) { tMod =  +1; rMod = -0.05; }
+        else if (this.season === 3) { tMod =  -8; rMod =  0.20; }
 
         const baseNoise = (Math.random() * 2 - 1);
         this.currentTemp = this.BASE_TEMP + tMod + this.params.tempAnomaly + baseNoise;

@@ -115,7 +115,9 @@ Effective annual mean = 19.25 °C, not 20 °C.
 **Proposed fix:**
 Balance tMods to sum = 0 per preset (same constraint as S2).
 
-**Status:** Open — part of climate preset redesign; low priority individually
+**Status:** Done — commit `fix(S3)`
+
+**Notes:** Autumn tMod 0→+1, Winter tMod -10→-8. Sum: -5+12+1-8=0. Effective temps: Spring 15°C, Summer 32°C, Autumn 21°C, Winter 12°C. BASE_TEMP=20 is now the true annual mean.
 
 ---
 
