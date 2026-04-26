@@ -18,7 +18,7 @@ Tracks identified issues and design decisions for the fire subsystem in `simulat
 ---
 
 ### F2 — environmentalFlam steps to a 0.95 hard cap above fireDangerIndex 1.5
-**Status:** Open (identified, not yet fixed)
+**Status:** Fixed (smooth linear ramp, cap 0.80)
 
 **Problem:**
 ```js

@@ -238,8 +238,7 @@ export class SimulationEngine {
                     else if (age <= 25) baseFlam = 0.20;
                     else                baseFlam = 0.05;
 
-                    let environmentalFlam = this.fireDangerIndex * 0.6;
-                    if (this.fireDangerIndex > 1.5) environmentalFlam = 0.95;
+                    const environmentalFlam = Math.min(0.80, this.fireDangerIndex * 0.4);
 
                     const totalFlam = Math.min(1.0, baseFlam + environmentalFlam);
 
