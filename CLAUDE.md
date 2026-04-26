@@ -50,4 +50,5 @@ The simulation uses a **cellular automaton** on an 800×600 grid rendered to a `
 
 - **Each logical change gets its own commit.** Keep commits small and focused so individual changes can be reviewed and reverted independently.
 - **Update `PROGRESS.md`** at the end of each session — note what was validated, what was changed, and any new findings.
+- **Update `PROGRESS.md` before context compaction.** If the conversation is approaching context limits (compaction imminent), write and commit a `PROGRESS.md` update immediately, before the compaction occurs.
 - **Commit message format:** short imperative subject line describing *what and why* (e.g. `fix: clamp hasBurningNeighbor to grid bounds`).
