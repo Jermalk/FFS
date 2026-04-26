@@ -151,6 +151,7 @@ Then open in your browser:
 |-----|-------|-----------|
 | `http://localhost:8080/test_seasonal.htm` | Seasonal logic | SL-1 to SL-6 (42 checks) |
 | `http://localhost:8080/test.htm` | Water model | WM-1 to WM-5 (13 checks) |
+| `http://localhost:8080/test_fire.htm` | Fire mechanics | FM-1 to FM-5 (12 checks) |
 
 Each page runs all scenarios automatically and shows PASS / FAIL per check. A **Download JSON** button at the bottom lets you save a timestamped result file.
 
@@ -164,19 +165,22 @@ Committed result files live in `test_results/`.
 index.htm              ← open this to run the simulation
 simulation.js          ← WebGL renderer + UI wiring
 simulation-engine.js   ← pure simulation logic (no DOM)
-issues.js              ← registry of all known model issues
+issues.js              ← registry of all known model issues (W, S, F series)
 test_framework.js      ← shared test runner (imported by test pages)
 test.htm               ← water model test page
 test_seasonal.htm      ← seasonal logic test page
+test_fire.htm          ← fire mechanics test page
 tests/
   water_model.js       ← water model scenarios
   seasonal_logic.js    ← seasonal logic scenarios
+  fire_mechanics.js    ← fire mechanics scenarios
 test_results/
   water_model/         ← committed JSON results
   seasonal_logic/      ← committed JSON results
-  fire_mechanics/      ← placeholder for future suite
+  fire_mechanics/      ← fire mechanics results (save after running test_fire.htm)
 model_water.md         ← water subsystem design & issue log
 model_seasonal_logic.md ← seasonal/climate design & issue log
+model_fire.md          ← fire subsystem design & issue log
 PROGRESS.md            ← session-by-session development log
 ```
 
@@ -188,9 +192,11 @@ PROGRESS.md            ← session-by-session development log
 |-----------|--------|
 | Water balance (W1–W5) | Validated — 5 fixes applied, 13/13 tests pass |
 | Seasonal logic (S1–S6) | Validated — 6 fixes applied, 42/42 tests pass |
+| Fire mechanics (F1–F5) | Validated — 1 fix applied (F1), 2 fixes pending (F2/F3), 12/12 tests pass |
 | Test framework | Live — unified runner, issue registry, JSON results committed |
-| Fire mechanics | Not yet validated |
-| `hasBurningNeighbor()` boundary bug | Identified, not yet fixed |
+| `hasBurningNeighbor()` boundary bug | Fixed (F1) |
+| environmentalFlam hard cap (F2) | Identified — old-growth ignites at 100% when fdi > 1.5; fix pending |
+| pLightning step function (F3) | Identified — ~190× ratio between cool and hot conditions; fix pending |
 | Water balance calibration for Temperate climate | Known gap — equilibrium ~90% soilWater vs 50–70% target |
 
 The simulator is functional and visually interesting at all settings. The validation work focuses on whether the *numbers* match the *intended ecology*, not on whether it looks good.

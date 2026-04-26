@@ -35,17 +35,28 @@ Goal: Verify that the generated code correctly implements the intended system lo
 - [x] Water balance — analysed and fixed; all 5 issues resolved (see model_water.md)
 - [x] Seasonal logic — all 6 issues fixed (S1–S6); see model_seasonal_logic.md
 - [x] Test framework — unified framework with issue registry, gap report, JSON download; both suites passing
+- [x] Edge/boundary bug — `hasBurningNeighbor()` boundary reads fixed (F1, commit bc4fda2)
+- [x] Fire mechanics — F1–F5 identified; F1 fixed; F2/F3 need fixes; F4/F5 accepted; 5/5 tests pass
 - [ ] Water balance calibration — Temperate equilibrates at ~90% soilWater vs 50–70% target (see Known Issues)
-- [ ] Fire mechanics — are flammability values and fire danger thresholds scaled sensibly?
+- [ ] F2 fix — environmentalFlam smooth ramp (old-growth 100% ignition at fdi > 1.5)
+- [ ] F3 fix — pLightning smooth exponential (~190× current ratio is a defect)
 - [ ] Sensitivity parameter — does it meaningfully differentiate Optimistic/Pessimistic scenarios?
-- [ ] Edge/boundary bug — `hasBurningNeighbor()` reads out-of-bounds array indices for cells on canvas edges
 
 ## Known Issues / Findings
 
-### Bug: hasBurningNeighbor() boundary reads
-- **Location:** `simulation.js:258–268`
-- **Problem:** Offsets like `-width-1` applied to edge cells go out of bounds. `Uint8Array[out-of-bounds]` returns `undefined`, which is falsy — so fires never "wrap" but the check is semantically wrong and may interact with type coercion unexpectedly.
-- **Status:** Identified, not yet fixed. Will fix as its own commit.
+### Bug: hasBurningNeighbor() boundary reads — FIXED
+- **Location:** `simulation-engine.js` — replaced offset table with bounds-checked per-direction reads.
+- **Fix (commit bc4fda2):** Computes `x = i % w`, `y = i / w | 0`, skips each of the 8 directions when the neighbor coordinate is outside grid bounds.
+
+### Design issue: F2 — environmentalFlam hard cap
+- **Location:** `simulation-engine.js` fire spread logic
+- **Problem:** At fdi > 1.5, `environmentalFlam` steps to 0.95 flat. Old-growth (baseFlam=0.05) gets totalFlam=1.00 — guaranteed ignition. Mediterranean summer regularly hits fdi~2.6, so this is common, not a corner case. No gradient above the threshold.
+- **Status:** Identified, fix proposed in model_fire.md. Next session.
+
+### Design issue: F3 — pLightning step function
+- **Location:** `simulation-engine.js` — three hard-coded rate levels
+- **Problem:** The 20× jump at fdi=1.0 and 10× jump at fdi=2.0 produce ~190× ratio between cool-wet and hot-dry lightning ignitions (measured in FM-5). Proposed fix: continuous `0.00001 * 10^min(fdi,3)`.
+- **Status:** Identified, fix proposed in model_fire.md. Next session.
 
 ### Calibration gap: Temperate soilWater equilibrium
 - **Symptom:** Temperate climate equilibrates at ~90% soilWater; calibration target is 50–70%.
@@ -54,9 +65,43 @@ Goal: Verify that the generated code correctly implements the intended system lo
 
 ## Next Session: pick up here
 
-1. **Fix `hasBurningNeighbor()` boundary bug** — one-line clamp fix, one commit.
-2. **Begin fire mechanics validation** — define F-series issues in `issues.js`, write `tests/fire_mechanics.js`, create `test_fire.htm`.
-3. **Water balance recalibration** — raise transpiration coefficient (or change temperature scaling) so Temperate equilibrates at 50–70%. Re-run WM-1 to verify bounds pass with updated thresholds.
+1. **Fix F3** — replace `pLightning` 3-step with smooth exponential: `0.00001 * 10^min(fdi,3)`. The current ~190× ratio between cool and hot conditions is a design defect.
+2. **Fix F2** — replace `environmentalFlam` hard cap at 0.95 with a smooth ramp (cap ~0.80) so old-growth retains stochasticity above fdi=1.5.
+3. **Water balance recalibration** — raise transpiration coefficient so Temperate equilibrates at 50–70% soilWater. Re-run WM-1 to verify bounds still pass.
+
+---
+
+## Session 5 Work (2026-04-26)
+
+### F1 fixed — hasBurningNeighbor() boundary reads (commit bc4fda2)
+
+Replaced the unconditional 8-offset table with a bounds-checked per-direction implementation. Computes `x = i % w`, `y = i / w | 0`, then skips each of the 8 directions when the neighbor coordinate falls outside `[0, w-1] × [0, h-1]`. FM-1 test confirms no crash, no invalid state bytes, edge cells cleared correctly after one tick.
+
+### Fire mechanics validation — F1–F5 identified and documented
+
+**Issues registry (`issues.js`):** F1–F5 added.
+
+**`model_fire.md` created:** Full analysis of all 5 issues with proposed fixes and calibration table.
+
+Key findings:
+- **F2 (environmentalFlam hard cap):** Old-growth gets totalFlam=1.00 (guaranteed ignition) whenever fdi > 1.5. Mediterranean summer regularly reaches fdi ~2.6. Proposed fix: smooth linear ramp capped at 0.80.
+- **F3 (pLightning step function):** Three discrete levels create a ~190× ratio in lightning ignitions between cool+wet and hot+dry conditions (measured FM-5). Proposed fix: continuous `0.00001 × 10^min(fdi,3)`.
+- **F4 (sapling baseFlam 0.80):** Average 86% of 8 neighbors ignite per tick (measured FM-2). Ecologically defensible for young conifer stands; accepted pending species parameterisation decision.
+- **F5 (tempStress baseline 15°C):** Makes boreal fire danger entirely drought-driven; accepted as realistic.
+
+### Fire mechanics test suite — 5/5 scenarios passing
+
+`tests/fire_mechanics.js` + `test_fire.htm`:
+
+| Scenario | What it tests | Result |
+|----------|---------------|--------|
+| FM-1 | Boundary safety — no crash or invalid state at grid edges | PASS |
+| FM-2 | Sapling spread rate ~86% (baseFlam=0.80 confirmed) | PASS |
+| FM-3 | Old-growth 23% vs sapling 37% cover loss — age resistance confirmed | PASS |
+| FM-4 | fdi monotone gradient: 0.38 → 0.90 → 2.95 across conditions | PASS |
+| FM-5 | Lightning ignitions: ~80 (cool) vs ~15,000 (hot) — confirms F3 severity | PASS |
+
+Existing suites unaffected: WM-1 smoke-check passed after boundary fix.
 
 ---
 
