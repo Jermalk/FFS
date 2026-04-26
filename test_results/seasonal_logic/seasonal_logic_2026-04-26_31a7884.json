@@ -1,0 +1,545 @@
+{
+  "suite": "seasonal_logic",
+  "timestamp": "2026-04-26T12:53:45.998Z",
+  "commit": "31a7884",
+  "passed": 42,
+  "failed": 0,
+  "total": 42,
+  "uncovered_issues": [
+    "W1",
+    "W2",
+    "W3",
+    "W4",
+    "W5"
+  ],
+  "scenarios": [
+    {
+      "id": "SL-1",
+      "title": "Preset integrity: sum(tMod)=0, sum(rMod)=0, driest rain ≥ 0.05",
+      "covers": [
+        {
+          "id": "S1",
+          "doc": "model_seasonal_logic.md",
+          "title": "Summer rain can reach zero (rMod too extreme)",
+          "status": "fixed"
+        },
+        {
+          "id": "S2",
+          "doc": "model_seasonal_logic.md",
+          "title": "Annual rain average is structurally below BASE_RAIN",
+          "status": "fixed"
+        },
+        {
+          "id": "S3",
+          "doc": "model_seasonal_logic.md",
+          "title": "Annual temperature average is slightly below BASE_TEMP",
+          "status": "fixed"
+        }
+      ],
+      "passed": 15,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Temperate — tMod sum",
+          "value": "0"
+        },
+        {
+          "label": "Temperate — rMod sum",
+          "value": "0.000000"
+        },
+        {
+          "label": "Temperate — driest season BASE_RAIN+rMod",
+          "value": "0.400"
+        },
+        {
+          "label": "Mediterranean — tMod sum",
+          "value": "0"
+        },
+        {
+          "label": "Mediterranean — rMod sum",
+          "value": "0.000000"
+        },
+        {
+          "label": "Mediterranean — driest season BASE_RAIN+rMod",
+          "value": "0.050"
+        },
+        {
+          "label": "Tropical (Wet/Dry) — tMod sum",
+          "value": "0"
+        },
+        {
+          "label": "Tropical (Wet/Dry) — rMod sum",
+          "value": "-0.000000"
+        },
+        {
+          "label": "Tropical (Wet/Dry) — driest season BASE_RAIN+rMod",
+          "value": "0.200"
+        },
+        {
+          "label": "Boreal — tMod sum",
+          "value": "0"
+        },
+        {
+          "label": "Boreal — rMod sum",
+          "value": "-0.000000"
+        },
+        {
+          "label": "Boreal — driest season BASE_RAIN+rMod",
+          "value": "0.350"
+        },
+        {
+          "label": "Semi-Arid — tMod sum",
+          "value": "0"
+        },
+        {
+          "label": "Semi-Arid — rMod sum",
+          "value": "0.000000"
+        },
+        {
+          "label": "Semi-Arid — driest season BASE_RAIN+rMod",
+          "value": "0.130"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Temperate: sum(tMod) = 0",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "Temperate: sum(rMod) = 0",
+          "pass": true,
+          "detail": "got 0.000000"
+        },
+        {
+          "label": "Temperate: driest rain ≥ 0.05",
+          "pass": true,
+          "detail": "got 0.400"
+        },
+        {
+          "label": "Mediterranean: sum(tMod) = 0",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "Mediterranean: sum(rMod) = 0",
+          "pass": true,
+          "detail": "got 0.000000"
+        },
+        {
+          "label": "Mediterranean: driest rain ≥ 0.05",
+          "pass": true,
+          "detail": "got 0.050"
+        },
+        {
+          "label": "Tropical (Wet/Dry): sum(tMod) = 0",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "Tropical (Wet/Dry): sum(rMod) = 0",
+          "pass": true,
+          "detail": "got -0.000000"
+        },
+        {
+          "label": "Tropical (Wet/Dry): driest rain ≥ 0.05",
+          "pass": true,
+          "detail": "got 0.200"
+        },
+        {
+          "label": "Boreal: sum(tMod) = 0",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "Boreal: sum(rMod) = 0",
+          "pass": true,
+          "detail": "got -0.000000"
+        },
+        {
+          "label": "Boreal: driest rain ≥ 0.05",
+          "pass": true,
+          "detail": "got 0.350"
+        },
+        {
+          "label": "Semi-Arid: sum(tMod) = 0",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "Semi-Arid: sum(rMod) = 0",
+          "pass": true,
+          "detail": "got 0.000000"
+        },
+        {
+          "label": "Semi-Arid: driest rain ≥ 0.05",
+          "pass": true,
+          "detail": "got 0.130"
+        }
+      ]
+    },
+    {
+      "id": "SL-2",
+      "title": "Season cycling & startup (S4 regression)",
+      "covers": [
+        {
+          "id": "S4",
+          "doc": "model_seasonal_logic.md",
+          "title": "Simulation starts in Summer, not Spring",
+          "status": "fixed"
+        }
+      ],
+      "passed": 7,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Initial ticks",
+          "value": "3"
+        },
+        {
+          "label": "Initial season",
+          "value": "3 (Winter)"
+        },
+        {
+          "label": "Initial year",
+          "value": "0"
+        },
+        {
+          "label": "After 1st update — season",
+          "value": "0 (Spring)"
+        },
+        {
+          "label": "After 1st update — year",
+          "value": "1"
+        },
+        {
+          "label": "After full year — season",
+          "value": "0 (Spring)"
+        },
+        {
+          "label": "After full year — year",
+          "value": "2"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Initial ticks = 3",
+          "pass": true,
+          "detail": "got 3"
+        },
+        {
+          "label": "Initial season = 3 (Winter)",
+          "pass": true,
+          "detail": "got 3"
+        },
+        {
+          "label": "Initial year = 0",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "After 1 tick: season = 0 (Spring)",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "After 1 tick: year = 1",
+          "pass": true,
+          "detail": "got 1"
+        },
+        {
+          "label": "After 1 full year: season = 0 (Spring)",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "After 1 full year: year = 2",
+          "pass": true,
+          "detail": "got 2"
+        }
+      ]
+    },
+    {
+      "id": "SL-3",
+      "title": "Annual climate convergence over 50 yr (S2/S3 runtime check)",
+      "covers": [
+        {
+          "id": "S2",
+          "doc": "model_seasonal_logic.md",
+          "title": "Annual rain average is structurally below BASE_RAIN",
+          "status": "fixed"
+        },
+        {
+          "id": "S3",
+          "doc": "model_seasonal_logic.md",
+          "title": "Annual temperature average is slightly below BASE_TEMP",
+          "status": "fixed"
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Temperate mean temp  (target 12°C)",
+          "value": "11.97°C"
+        },
+        {
+          "label": "Temperate mean rain  (target 0.55)",
+          "value": "0.550"
+        },
+        {
+          "label": "Mediterranean mean temp  (target 18°C)",
+          "value": "18.04°C"
+        },
+        {
+          "label": "Mediterranean mean rain  (target 0.4)",
+          "value": "0.403"
+        },
+        {
+          "label": "Boreal mean temp  (target 4°C)",
+          "value": "3.97°C"
+        },
+        {
+          "label": "Boreal mean rain  (target 0.45)",
+          "value": "0.453"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Temperate: mean temp ≈ BASE_TEMP ±1°C",
+          "pass": true,
+          "detail": "11.97°C vs 12°C"
+        },
+        {
+          "label": "Temperate: mean rain ≈ BASE_RAIN ±0.04",
+          "pass": true,
+          "detail": "0.550 vs 0.55"
+        },
+        {
+          "label": "Mediterranean: mean temp ≈ BASE_TEMP ±1°C",
+          "pass": true,
+          "detail": "18.04°C vs 18°C"
+        },
+        {
+          "label": "Mediterranean: mean rain ≈ BASE_RAIN ±0.04",
+          "pass": true,
+          "detail": "0.403 vs 0.4"
+        },
+        {
+          "label": "Boreal: mean temp ≈ BASE_TEMP ±1°C",
+          "pass": true,
+          "detail": "3.97°C vs 4°C"
+        },
+        {
+          "label": "Boreal: mean rain ≈ BASE_RAIN ±0.04",
+          "pass": true,
+          "detail": "0.453 vs 0.45"
+        }
+      ]
+    },
+    {
+      "id": "SL-4",
+      "title": "Winter dormancy blocks growth; summer allows growth (S5 regression)",
+      "covers": [
+        {
+          "id": "S5",
+          "doc": "model_seasonal_logic.md",
+          "title": "Growth rate is not seasonally modulated (no winter dormancy)",
+          "status": "fixed"
+        }
+      ],
+      "passed": 6,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Winter season",
+          "value": "3 (Winter)"
+        },
+        {
+          "label": "Winter currentTemp",
+          "value": "-22.6°C"
+        },
+        {
+          "label": "New trees after winter tick",
+          "value": "0"
+        },
+        {
+          "label": "Summer season",
+          "value": "1 (Summer)"
+        },
+        {
+          "label": "Summer currentTemp",
+          "value": "19.5°C"
+        },
+        {
+          "label": "New trees after summer tick",
+          "value": "3646"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Winter season index = 3",
+          "pass": true,
+          "detail": "got 3"
+        },
+        {
+          "label": "Winter temp < 5°C (dormancy zone)",
+          "pass": true,
+          "detail": "got -22.6°C"
+        },
+        {
+          "label": "Zero new trees in boreal winter",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "Summer season index = 1",
+          "pass": true,
+          "detail": "got 1"
+        },
+        {
+          "label": "Summer temp ≥ 5°C (growth zone)",
+          "pass": true,
+          "detail": "got 19.5°C"
+        },
+        {
+          "label": "Growth in boreal summer (> 1000)",
+          "pass": true,
+          "detail": "got 3646"
+        }
+      ]
+    },
+    {
+      "id": "SL-5",
+      "title": "Climate differentiation over 50 yr (S6 regression)",
+      "covers": [
+        {
+          "id": "S6",
+          "doc": "model_seasonal_logic.md",
+          "title": "Single hardcoded climate; no user choice",
+          "status": "fixed"
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Temperate mean temp",
+          "value": "12.1°C"
+        },
+        {
+          "label": "Mediterranean mean temp",
+          "value": "18.0°C"
+        },
+        {
+          "label": "Tropical (Wet/Dry) mean temp",
+          "value": "27.0°C"
+        },
+        {
+          "label": "Boreal mean temp",
+          "value": "3.9°C"
+        },
+        {
+          "label": "Semi-Arid mean temp",
+          "value": "22.0°C"
+        },
+        {
+          "label": "Temperate soil water (50yr)",
+          "value": "90%"
+        },
+        {
+          "label": "Semi-Arid soil water (50yr)",
+          "value": "0%"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Boreal cooler than Temperate",
+          "pass": true,
+          "detail": "boreal=3.9°C < temperate=12.1°C"
+        },
+        {
+          "label": "Temperate cooler than Mediterranean",
+          "pass": true,
+          "detail": "temperate=12.1°C < med=18.0°C"
+        },
+        {
+          "label": "Mediterranean cooler than Tropical",
+          "pass": true,
+          "detail": "med=18.0°C < tropical=27.0°C"
+        },
+        {
+          "label": "Semi-Arid drier than Temperate after 50yr",
+          "pass": true,
+          "detail": "semiarid=0% < temperate=90%"
+        }
+      ]
+    },
+    {
+      "id": "SL-6",
+      "title": "Climate switch resets engine to initial state (S6 regression)",
+      "covers": [
+        {
+          "id": "S6",
+          "doc": "model_seasonal_logic.md",
+          "title": "Single hardcoded climate; no user choice",
+          "status": "fixed"
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Year before switch",
+          "value": "20"
+        },
+        {
+          "label": "Ticks before switch",
+          "value": "83"
+        },
+        {
+          "label": "Climate before switch",
+          "value": "temperate"
+        },
+        {
+          "label": "Climate after switch",
+          "value": "mediterranean"
+        },
+        {
+          "label": "Year after switch",
+          "value": "0"
+        },
+        {
+          "label": "Ticks after switch",
+          "value": "3"
+        },
+        {
+          "label": "Season after switch",
+          "value": "3 (Winter)"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Climate type updated",
+          "pass": true,
+          "detail": "got mediterranean"
+        },
+        {
+          "label": "Year reset to 0",
+          "pass": true,
+          "detail": "got 0"
+        },
+        {
+          "label": "Ticks reset to 3",
+          "pass": true,
+          "detail": "got 3"
+        },
+        {
+          "label": "Season reset to 3 (Winter)",
+          "pass": true,
+          "detail": "got 3"
+        }
+      ]
+    }
+  ]
+}

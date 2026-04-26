@@ -1,0 +1,283 @@
+{
+  "suite": "water_model",
+  "timestamp": "2026-04-26T13:11:36.079Z",
+  "commit": "40cdbef",
+  "passed": 15,
+  "failed": 0,
+  "total": 15,
+  "uncovered_issues": [
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ],
+  "scenarios": [
+    {
+      "id": "WM-1",
+      "title": "Baseline stability — forest survives 120yr without collapse or saturation (Temperate)",
+      "covers": [
+        {
+          "id": "W3",
+          "doc": "model_water.md",
+          "title": "Outflow is biomass-blind (no transpiration feedback)",
+          "status": "fixed"
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Groundwater",
+          "value": "88%"
+        },
+        {
+          "label": "Biomass",
+          "value": "81%"
+        },
+        {
+          "label": "Fire Danger",
+          "value": "0.30"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Groundwater not collapsed (≥ 40%)",
+          "pass": true,
+          "detail": "got 88%"
+        },
+        {
+          "label": "Groundwater not pinned at max (< 98%)",
+          "pass": true,
+          "detail": "got 88%"
+        },
+        {
+          "label": "Biomass viable (≥ 40%)",
+          "pass": true,
+          "detail": "got 81%"
+        },
+        {
+          "label": "Fire Danger manageable (< 1.5)",
+          "pass": true,
+          "detail": "got 0.30"
+        }
+      ]
+    },
+    {
+      "id": "WM-2",
+      "title": "Max rain bias — soilWater must not pin at 100% (100 years, rainBias=2.0)",
+      "covers": [
+        {
+          "id": "W1",
+          "doc": "model_water.md",
+          "title": "Waterlogging causes zero mortality",
+          "status": "fixed"
+        },
+        {
+          "id": "W2",
+          "doc": "model_water.md",
+          "title": "pGrowth is monotonically linear — no ecological optimum",
+          "status": "fixed"
+        },
+        {
+          "id": "W4",
+          "doc": "model_water.md",
+          "title": "Runoff ignores soil saturation state (Horton flow missing)",
+          "status": "fixed"
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Groundwater (stabilised)",
+          "value": "90%"
+        },
+        {
+          "label": "Biomass",
+          "value": "81%"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Groundwater not pinned at 100% (< 98%)",
+          "pass": true,
+          "detail": "got 90%"
+        },
+        {
+          "label": "Groundwater not collapsed (> 40%)",
+          "pass": true,
+          "detail": "got 90%"
+        },
+        {
+          "label": "Biomass exists (> 20%)",
+          "pass": true,
+          "detail": "got 81%"
+        }
+      ]
+    },
+    {
+      "id": "WM-3",
+      "title": "Drought stress — 30yr build then 30yr max drought",
+      "covers": [
+        {
+          "id": "W3",
+          "doc": "model_water.md",
+          "title": "Outflow is biomass-blind (no transpiration feedback)",
+          "status": "fixed"
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Biomass at drought onset",
+          "value": "63%"
+        },
+        {
+          "label": "Groundwater at onset",
+          "value": "89%"
+        },
+        {
+          "label": "Groundwater after 30yr drought",
+          "value": "0%"
+        },
+        {
+          "label": "Biomass after 30yr drought",
+          "value": "0%"
+        },
+        {
+          "label": "Fire Danger",
+          "value": "2.50"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Biomass collapses to < 30%",
+          "pass": true,
+          "detail": "got 0%"
+        },
+        {
+          "label": "Groundwater depleted (< 25%)",
+          "pass": true,
+          "detail": "got 0%"
+        },
+        {
+          "label": "Fire Danger elevated (> 1.0)",
+          "pass": true,
+          "detail": "got 2.50"
+        }
+      ]
+    },
+    {
+      "id": "WM-4",
+      "title": "Heavy rain keeps fire danger low; drought drives it high (tempAnomaly=5)",
+      "covers": [
+        {
+          "id": "W5",
+          "doc": "model_water.md",
+          "title": "Surplus water silently discarded (no flood signal)",
+          "status": "fixed"
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Wet groundwater (20yr)",
+          "value": "76%"
+        },
+        {
+          "label": "Dry groundwater (20yr)",
+          "value": "0%"
+        },
+        {
+          "label": "Wet fire danger",
+          "value": "0.912"
+        },
+        {
+          "label": "Dry fire danger",
+          "value": "3.750"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Drought has higher soilStress than flood",
+          "pass": true,
+          "detail": "dry=0% < wet=76%"
+        },
+        {
+          "label": "Drought fire danger > heavy rain fire danger",
+          "pass": true,
+          "detail": "dry=3.750 > wet=0.912"
+        },
+        {
+          "label": "Heavy rain keeps fire danger below 2.0",
+          "pass": true,
+          "detail": "got 0.912"
+        }
+      ]
+    },
+    {
+      "id": "WM-5",
+      "title": "Dense vs sparse forest under drought — transpiration feedback (W3)",
+      "covers": [
+        {
+          "id": "W3",
+          "doc": "model_water.md",
+          "title": "Outflow is biomass-blind (no transpiration feedback)",
+          "status": "fixed"
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Dense biomass at drought onset",
+          "value": "74%"
+        },
+        {
+          "label": "Sparse biomass at drought onset",
+          "value": "48%"
+        },
+        {
+          "label": "Dense groundwater at onset",
+          "value": "91%"
+        },
+        {
+          "label": "Sparse groundwater at onset",
+          "value": "89%"
+        },
+        {
+          "label": "Dense outflow (yr 1 of drought)",
+          "value": "0.2924"
+        },
+        {
+          "label": "Sparse outflow (yr 1 of drought)",
+          "value": "0.2818"
+        },
+        {
+          "label": "Dense groundwater after 5yr drought",
+          "value": "0%"
+        },
+        {
+          "label": "Sparse groundwater after 5yr drought",
+          "value": "0%"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Dense forest has higher water outflow than sparse (transpiration)",
+          "pass": true,
+          "detail": "dense=0.2924 sparse=0.2818"
+        },
+        {
+          "label": "Dense forest more depleted after 5yr drought",
+          "pass": true,
+          "detail": "dense=0% sparse=0%"
+        }
+      ]
+    }
+  ]
+}
