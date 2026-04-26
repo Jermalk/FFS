@@ -196,9 +196,7 @@ export class SimulationEngine {
         const growthTempFactor = Math.max(0, Math.min(1, (this.currentTemp - 5) / 15));
         const pGrowth = 0.008 * moistureFactor * growthTempFactor * this.params.growthRate / sensitivity;
 
-        let pLightning = 0.00001 * this.params.fireFreq;
-        if (this.fireDangerIndex > 1.0) pLightning = 0.0002 * this.params.fireFreq;
-        if (this.fireDangerIndex > 2.0) pLightning = 0.002  * this.params.fireFreq;
+        const pLightning = 0.00001 * Math.pow(10, Math.min(this.fireDangerIndex, 3)) * this.params.fireFreq;
 
         // Drought dieback
         let pDieback = 0;

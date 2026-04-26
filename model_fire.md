@@ -39,7 +39,7 @@ This preserves a gradient throughout and leaves at least 15% stochasticity for o
 ---
 
 ### F3 — pLightning uses three discrete step levels — no gradient
-**Status:** Open (identified, not yet fixed)
+**Status:** Fixed (continuous exponential: `0.00001 × 10^min(fdi,3) × fireFreq`)
 
 **Problem:**
 ```js

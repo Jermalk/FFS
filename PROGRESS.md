@@ -39,7 +39,7 @@ Goal: Verify that the generated code correctly implements the intended system lo
 - [x] Fire mechanics — F1–F5 identified; F1 fixed; F2/F3 need fixes; F4/F5 accepted; 5/5 tests pass
 - [ ] Water balance calibration — Temperate equilibrates at ~90% soilWater vs 50–70% target (see Known Issues)
 - [x] F2 fix — environmentalFlam smooth ramp, cap 0.80 (commit pending)
-- [ ] F3 fix — pLightning smooth exponential (~190× current ratio is a defect)
+- [x] F3 fix — pLightning smooth exponential (commit pending)
 - [ ] Sensitivity parameter — does it meaningfully differentiate Optimistic/Pessimistic scenarios?
 
 ## Known Issues / Findings
@@ -65,8 +65,7 @@ Goal: Verify that the generated code correctly implements the intended system lo
 
 ## Next Session: pick up here
 
-1. **Fix F3** — replace `pLightning` 3-step with smooth exponential: `0.00001 * 10^min(fdi,3)`. The current ~190× ratio between cool and hot conditions is a design defect.
-2. **Water balance recalibration** — raise transpiration coefficient so Temperate equilibrates at 50–70% soilWater. Re-run WM-1 to verify bounds still pass.
+1. **Water balance recalibration** — raise transpiration coefficient so Temperate equilibrates at 50–70% soilWater. Re-run WM-1 to verify bounds still pass.
 
 ---
 
