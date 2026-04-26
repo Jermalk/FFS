@@ -148,6 +148,13 @@ function updateUI(els, engine) {
     els.biomass.innerText   = ((engine.stats.biomass   / total) * 100).toFixed(0) + "%";
     els.oldGrowth.innerText = ((engine.stats.oldGrowth / total) * 100).toFixed(0) + "%";
     els.yearOverlay.innerText = `Year ${engine.year}`;
+
+    els.statClimate.innerText = CLIMATE_PRESETS[engine.params.climateType].label;
+    els.statTempAnom.innerText = '+' + engine.params.tempAnomaly.toFixed(1) + '°C';
+    const rb = engine.params.rainBias;
+    els.statRainBias.innerText = rb > 1.05 ? `Wet (${rb.toFixed(1)}×)` : rb < 0.95 ? `Drought (${rb.toFixed(1)}×)` : `Normal (${rb.toFixed(1)}×)`;
+    const sv = engine.params.sensitivity;
+    els.statSensitivity.innerText = sv < 0.9 ? 'Optimistic' : sv > 1.1 ? 'Pessimistic' : 'Normal';
 }
 
 // ---- History chart ---------------------------------------------------------
@@ -313,8 +320,12 @@ window.onload = function () {
         biomass:     document.getElementById('stat-biomass'),
         oldGrowth:   document.getElementById('stat-old'),
         yearOverlay: document.getElementById('year-overlay'),
-        btnPause:    document.getElementById('btn-pause'),
-        simspeed:    document.getElementById('stat-simspeed'),
+        btnPause:        document.getElementById('btn-pause'),
+        simspeed:        document.getElementById('stat-simspeed'),
+        statClimate:     document.getElementById('stat-climate'),
+        statTempAnom:    document.getElementById('stat-temp-anom'),
+        statRainBias:    document.getElementById('stat-rain-bias'),
+        statSensitivity: document.getElementById('stat-sensitivity'),
     };
 
     let isPaused = false;
