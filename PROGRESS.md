@@ -27,11 +27,12 @@ Goal: Verify that the generated code correctly implements the intended system lo
 |---|---|---|
 | `model_water.md` | Water / soil moisture | All 5 fixes complete |
 | `test_water_model.md` | Water model behaviour tests | 5 scenarios defined, not yet run |
+| `model_seasonal_logic.md` | Seasonal / climate subsystem | 6 issues identified (S1–S6); all open |
 
 ## Validation Checklist
 
 - [x] Water balance — analysed and fixed; all 5 issues resolved (see model_water.md)
-- [ ] Seasonal logic — do season modifiers produce realistic annual cycles?
+- [x] Seasonal logic — all 6 issues fixed (S1–S6); see model_seasonal_logic.md
 - [ ] Fire mechanics — are flammability values and fire danger thresholds scaled sensibly?
 - [ ] Sensitivity parameter — does it meaningfully differentiate Optimistic/Pessimistic scenarios?
 - [ ] Edge/boundary bug — `hasBurningNeighbor()` reads out-of-bounds array indices for cells on canvas edges
@@ -42,6 +43,21 @@ Goal: Verify that the generated code correctly implements the intended system lo
 - **Location:** `simulation.js:258–268`
 - **Problem:** Offsets like `-width-1` applied to edge cells go out of bounds. `Uint8Array[out-of-bounds]` returns `undefined`, which is falsy — so fires never "wrap" but the check is semantically wrong and may interact with type coercion unexpectedly.
 - **Status:** Identified, not yet fixed. Will fix as its own commit.
+
+## Session 3 Work (2026-04-26)
+
+### Seasonal Logic — all 6 issues resolved
+
+- **S1** — raised summer rMod −0.60→−0.45 so base rain is 0.05, not systematically zero
+- **S2** — rebalanced all rMods to sum=0; BASE_RAIN is now true annual mean
+- **S3** — rebalanced all tMods to sum=0; BASE_TEMP is now true annual mean
+- **S4** — fixed simulation starting in Summer; now begins Year 1 / Spring on first tick
+- **S5** — added `growthTempFactor` = clamp((T−5)/15, 0, 1); pGrowth=0 at ≤5°C (winter dormancy)
+- **S6** — `CLIMATE_PRESETS` (5 presets: Temperate / Mediterranean / Tropical / Boreal / Semi-Arid); dropdown in settings drawer; `setClimate()` auto-resets; default changed to Temperate
+
+All preset modifiers satisfy sum(tMod)=0, sum(rMod)=0 so BASE_TEMP/BASE_RAIN are true annual means. Full notes per issue in `model_seasonal_logic.md`.
+
+---
 
 ## Session 2 Work (2026-04-26)
 
