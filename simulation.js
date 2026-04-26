@@ -387,8 +387,11 @@ window.onload = function () {
         if (chartVisible) renderChart();
     });
 
-    document.getElementById('in-speed').addEventListener('input', (e) =>
-        engine.params.speed = parseInt(e.target.value));
+    document.getElementById('in-speed').addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        engine.params.speed = val;
+        document.getElementById('val-speed').innerText = val + ' t/s';
+    });
 
     document.getElementById('in-scenario').addEventListener('change', (e) =>
         engine.params.sensitivity = parseFloat(e.target.value));
