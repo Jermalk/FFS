@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forest Model v21: Full Control</title>
+    <style>
+        /* --- CORE LAYOUT --- */
+        body { margin: 0; background-color: #0d0d0d; color: #ccc; font-family: 'Roboto Mono', monospace; overflow: hidden; display: flex; height: 100vh; }
+        
+        #sidebar { 
+            width: 340px; min-width: 340px; background: #151515; padding: 15px; 
+            display: flex; flex-direction: column; border-right: 1px solid #333; z-index: 10; 
+            overflow-y: auto; transition: margin-left 0.3s;
+        }
+
+        #settings-drawer {
+            position: fixed; top: 0; left: -420px; width: 380px; height: 100vh;
+            background: #1e1e1e; border-right: 1px solid #6c5ce7; box-shadow: 10px 0 30px rgba(0,0,0,0.5);
+            z-index: 20; transition: left 0.3s ease-in-out; padding: 20px; box-sizing: border-box;
+            display: flex; flex-direction: column; overflow-y: auto;
+        }
+        #settings-drawer.open { left: 0; }
+        
+        #backdrop {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); z-index: 15; display: none; backdrop-filter: blur(2px);
+        }
+        #backdrop.visible { display: block; }
+
+        #viewport { flex-grow: 1; background: #000; display: flex; justify-content: center; align-items: center; overflow: hidden; position: relative; }
+        canvas { 
+            image-rendering: pixelated; box-shadow: 0 0 50px rgba(0,0,0,0.8); border: 1px solid #333; 
+            width: 100%; height: 100%; object-fit: contain; background: #2D344A;
+        }
+
+        h2 { margin: 0 0 15px 0; color: #fff; font-size: 1.1rem; border-bottom: 2px solid #333; padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        .panel { background: #1e1e1e; padding: 10px; border-radius: 4px; margin-bottom: 15px; border: 1px solid #333; }
+        .drawer-section { margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .section-title { color: #aaa; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 1px; }
+
+        /* Buttons */
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        button { padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; transition: background 0.2s; font-family: inherit; }
+        .btn-icon { background: #6c5ce7; color: white; width: 100%; margin-bottom: 15px; }
+        .btn-icon:hover { background: #8e7dff; }
+        .btn-close { background: transparent; color: #aaa; font-size: 1.2rem; padding: 0; }
+        .btn-close:hover { color: #fff; }
+        .btn-pause { background: #e1b12c; color: #000; }
+        .btn-step { background: #0984e3; color: #fff; }
+        .btn-reset { background: #d63031; color: #fff; width: 100%; margin-top: 5px;}
+
+        /* Metrics */
+        .metric-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.8rem; }
+        .weather-box { background: #252525; padding: 8px; border-radius: 4px; text-align: center; }
+        .weather-val { font-size: 1.2rem; font-weight: bold; display: block; }
+        .weather-label { font-size: 0.7rem; color: #aaa; text-transform: uppercase; }
+        #climate-display { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Inputs */
+        label { display: flex; align-items: center; font-size: 0.8rem; color: #ddd; margin-bottom: 4px; margin-top: 12px; }
+        input[type=range] { width: 100%; margin-bottom: 2px; cursor: pointer; }
+        select { width: 100%; padding: 8px; background: #333; color: #fff; border: 1px solid #444; border-radius: 4px; margin-bottom: 10px; cursor: pointer; }
+        .val-display { color: #fff; font-weight: bold; margin-left: auto; font-size: 0.8rem; font-family: monospace; }
+
+        /* TOOLTIPS */
+        .help-icon {
+            display: inline-block; width: 14px; height: 14px; background: #444; color: #fff;
+            border-radius: 50%; text-align: center; line-height: 14px; font-size: 10px;
+            margin-left: 8px; cursor: help; position: relative; font-weight: normal;
+        }
+        .help-icon:hover { background: #6c5ce7; }
+        
+        .help-icon .tooltip-text {
+            visibility: hidden; width: 240px; background-color: #222; color: #eee; text-align: left;
+            border-radius: 6px; padding: 12px; position: absolute; z-index: 100;
+            bottom: 135%; left: 50%; margin-left: -120px; opacity: 0; transition: opacity 0.2s;
+            font-size: 0.75rem; line-height: 1.4; border: 1px solid #555;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8); pointer-events: none;
+        }
+        .help-icon .tooltip-text::after {
+            content: ""; position: absolute; top: 100%; left: 50%; margin-left: -5px;
+            border-width: 5px; border-style: solid; border-color: #222 transparent transparent transparent;
+        }
+        .help-icon .def-val { display: block; margin-top: 6px; color: #6c5ce7; font-weight: bold; }
+        .help-icon:hover .tooltip-text { visibility: visible; opacity: 1; }
+
+        /* LEGEND & STATS */
+        .biome-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 0.75rem; }
+        .biome-item { display: flex; align-items: center; }
+        .dot { width: 8px; height: 8px; margin-right: 6px; border-radius: 50%; }
+        .current-biome { text-align: center; font-weight: bold; padding: 5px; background: #333; border-radius: 4px; margin-bottom: 10px; color: #fff; font-size: 0.9rem;}
+        
+        .stat-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 5px; }
+        .stat-table td { padding: 3px 0; border-bottom: 1px solid #333; }
+        .stat-bar-bg { width: 50px; height: 6px; background: #333; display: inline-block; margin-left: 5px; border-radius: 2px; }
+        .stat-bar-fill { height: 100%; border-radius: 2px; }
+
+        #soil-bar-container { width: 100%; height: 8px; background: #333; margin-top: 5px; border-radius: 4px; overflow: hidden; }
+        #soil-bar { width: 100%; height: 100%; background: #0abde3; transition: width 0.5s; }
+        #year-overlay { position: absolute; top: 20px; left: 20px; font-size: 2rem; font-weight: bold; color: rgba(255, 255, 255, 0.8); pointer-events: none; text-shadow: 2px 2px 4px #000; }
+        
+        .flux-display { font-size: 0.7rem; text-align: right; margin-top: 2px; color: #aaa; font-family: monospace; }
+    </style>
+</head>
+<body>
+
+    <div id="backdrop" onclick="toggleSettings()"></div>
+    <div id="settings-drawer">
+        <h2>Configuration <button class="btn-close" onclick="toggleSettings()">×</button></h2>
+        
+        <div class="drawer-section">
+            <div class="section-title" style="color: #ff9f43;">Atmosphere</div>
+            
+            <label>
+                Temp Anomaly
+                <div class="help-icon">?<span class="tooltip-text">Global temperature rise above baseline. Higher temps increase evaporation exponentially.<span class="def-val">Default: +0.0°C</span></span></div>
+                <span id="val-temp-bias" class="val-display" style="color:#ff9f43">+0.00°C</span>
+            </label>
+            <input type="range" id="in-temp-bias" min="0" max="10" step="0.05" value="0">
+
+            <label>
+                Rainfall Bias
+                <div class="help-icon">?<span class="tooltip-text">Multiplier for precipitation. Values < 1.0 indicate drought conditions.<span class="def-val">Default: 1.0x</span></span></div>
+                <span id="val-rain-bias" class="val-display" style="color:#0abde3">1.0x</span>
+            </label>
+            <input type="range" id="in-rain-bias" min="0" max="2" step="0.1" value="1.0">
+        </div>
+
+        <div class="drawer-section">
+            <div class="section-title" style="color: #6c5ce7;">Ecosystem Physics</div>
+            
+            <label>
+                Model Sensitivity
+                <div class="help-icon">?<span class="tooltip-text">Amplifies the ecosystem's reaction to stress. High sensitivity causes faster collapse.<span class="def-val">Default: Normal (1.0)</span></span></div>
+            </label>
+            <select id="in-scenario">
+                <option value="0.7">Optimistic (Resilient)</option>
+                <option value="1.0" selected>Normal (Standard)</option>
+                <option value="1.4">Pessimistic (Fragile)</option>
+            </select>
+
+            <label>
+                Basal Metabolism
+                <div class="help-icon">?<span class="tooltip-text">The fixed water cost for plants to survive per tick, regardless of temperature. Lower is more efficient.<span class="def-val">Default: 0.025</span></span></div>
+                <span id="val-metabolism" class="val-display">0.025</span>
+            </label>
+            <input type="range" id="in-metabolism" min="0.005" max="0.060" step="0.001" value="0.025">
+
+            <label>
+                Growth Rate
+                <div class="help-icon">?<span class="tooltip-text">Global multiplier for how quickly plants colonize empty soil.<span class="def-val">Default: 1.0x</span></span></div>
+                <span id="val-growth" class="val-display">1.0x</span>
+            </label>
+            <input type="range" id="in-growth" min="0.1" max="5.0" step="0.1" value="1.0">
+
+            <label>
+                Clustering
+                <div class="help-icon">?<span class="tooltip-text">Probability of new growth inheriting neighbor biome type. Controls patchiness.<span class="def-val">Default: 0.70</span></span></div>
+                <span id="val-cluster" class="val-display">0.70</span>
+            </label>
+            <input type="range" id="in-clustering" min="0" max="1" step="0.01" value="0.7">
+        </div>
+
+        <div class="drawer-section">
+            <div class="section-title" style="color: #ff4757;">Disaster</div>
+            
+            <label>
+                Fire Frequency
+                <div class="help-icon">?<span class="tooltip-text">Multiplier for random lightning strikes. Does not affect spread speed.<span class="def-val">Default: 1.0x</span></span></div>
+                <span id="val-fire" class="val-display">1.0x</span>
+            </label>
+            <input type="range" id="in-fire" min="0" max="10" step="0.1" value="1.0">
+        </div>
+
+        <div class="drawer-section">
+            <div class="section-title">System</div>
+             <label>
+                Render Speed (FPS)
+                <div class="help-icon">?<span class="tooltip-text">Simulation updates per second.<span class="def-val">Default: 60</span></span></div>
+            </label>
+            <input type="range" id="in-speed" min="1" max="60" value="60">
+        </div>
+
+        <button class="btn-reset" id="btn-reset-drawer">Re-Initialize World</button>
+    </div>
+
+    <div id="sidebar">
+        <h2>Eco-System v21</h2>
+        <button class="btn-icon" onclick="toggleSettings()">⚙️ Settings & Physics</button>
+
+        <div class="panel">
+            <div style="font-size: 0.7rem; color: #aaa; text-transform: uppercase; margin-bottom: 4px;">Climate Trend Target</div>
+            <div id="target-biome-label" class="current-biome">TEMPERATE FOREST</div>
+            <div class="biome-legend">
+                <div class="biome-item"><span class="dot" style="background:#d2b48c"></span> Soil</div>
+                <div class="biome-item"><span class="dot" style="background:#2d3436"></span> Ash</div>
+                <div class="biome-item"><span class="dot" style="background:#f1c40f"></span> Steppe</div>
+                <div class="biome-item"><span class="dot" style="background:#2ecc71"></span> Forest</div>
+                <div class="biome-item"><span class="dot" style="background:#e67e22"></span> Desert</div>
+                <div class="biome-item"><span class="dot" style="background:#006266"></span> Jungle</div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="btn-group">
+                <button class="btn-pause" id="btn-pause">Pause</button>
+                <button class="btn-step" id="btn-step">+1 Yr</button>
+            </div>
+            <div class="metric-row"><span>Year:</span> <span id="ui-year" class="metric-val">0</span></div>
+            <div class="metric-row"><span>Season:</span> <span id="ui-season" class="metric-val">Q1</span></div>
+        </div>
+
+        <div class="panel">
+            <div id="climate-display">
+                <div class="weather-box">
+                    <span id="cur-temp" class="weather-val" style="color:#ff6b6b">20°C</span>
+                    <span class="weather-label">Temp</span>
+                </div>
+                <div class="weather-box">
+                    <span id="cur-rain" class="weather-val" style="color:#48dbfb">50%</span>
+                    <span class="weather-label">Rain</span>
+                </div>
+            </div>
+            
+            <div style="margin-top: 15px;">
+                <div class="metric-row">
+                    <span style="font-size:0.75rem; color:#aaa;">Groundwater</span>
+                    <span id="val-soil" style="font-size:0.75rem; font-weight:bold;">100%</span>
+                </div>
+                <div id="soil-bar-container"><div id="soil-bar"></div></div>
+                <div class="flux-display">
+                    In: <span id="flux-in" class="val-in">+0.00</span> | 
+                    Out: <span id="flux-out" class="val-out">-0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div style="font-size: 0.8rem; font-weight: bold; margin-bottom: 5px;">Biome Composition</div>
+            <table class="stat-table">
+                <tr>
+                    <td><span class="dot" style="background:#e67e22"></span>Desert</td>
+                    <td id="stat-pct-0">0%</td>
+                    <td><div class="stat-bar-bg"><div id="bar-0" class="stat-bar-fill" style="background:#e67e22; width:0%"></div></div></td>
+                </tr>
+                <tr>
+                    <td><span class="dot" style="background:#f1c40f"></span>Steppe</td>
+                    <td id="stat-pct-1">0%</td>
+                    <td><div class="stat-bar-bg"><div id="bar-1" class="stat-bar-fill" style="background:#f1c40f; width:0%"></div></div></td>
+                </tr>
+                <tr>
+                    <td><span class="dot" style="background:#badc58"></span>Savannah</td>
+                    <td id="stat-pct-2">0%</td>
+                    <td><div class="stat-bar-bg"><div id="bar-2" class="stat-bar-fill" style="background:#badc58; width:0%"></div></div></td>
+                </tr>
+                <tr>
+                    <td><span class="dot" style="background:#2ecc71"></span>Forest</td>
+                    <td id="stat-pct-3">0%</td>
+                    <td><div class="stat-bar-bg"><div id="bar-3" class="stat-bar-fill" style="background:#2ecc71; width:0%"></div></div></td>
+                </tr>
+                <tr>
+                    <td><span class="dot" style="background:#006266"></span>Jungle</td>
+                    <td id="stat-pct-4">0%</td>
+                    <td><div class="stat-bar-bg"><div id="bar-4" class="stat-bar-fill" style="background:#006266; width:0%"></div></div></td>
+                </tr>
+                <tr>
+                    <td style="border:none; padding-top:8px;"><span class="dot" style="background:#2d3436"></span>Burned</td>
+                    <td style="border:none; padding-top:8px;" id="stat-pct-ash">0%</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div id="viewport">
+        <canvas id="simCanvas"></canvas>
+        <div id="year-overlay">Year 0</div>
+    </div>
+
+    <script src="simulation.js"></script>
+    <script>
+        function toggleSettings() {
+            const drawer = document.getElementById('settings-drawer');
+            const backdrop = document.getElementById('backdrop');
+            if (drawer.classList.contains('open')) {
+                drawer.classList.remove('open');
+                backdrop.classList.remove('visible');
+            } else {
+                drawer.classList.add('open');
+                backdrop.classList.add('visible');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -6,6 +6,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Open `index.htm` directly in a browser — no build step, no server required. The simulation runs as a self-contained HTML + vanilla JS application.
 
+## Running Tests
+
+Tests use ES modules and must be served over HTTP (not `file://`):
+
+```
+python3 -m http.server 8080
+```
+
+Then open:
+- `localhost:8080/test/` — hub listing all suites
+- `localhost:8080/test/water/` — Water Model (WM-1 to WM-5)
+- `localhost:8080/test/fire/` — Fire Mechanics (FM-1 to FM-5)
+- `localhost:8080/test/seasons/` — Seasonal Logic (SL-1 to SL-6)
+
 ## Architecture
 
 The project is two files:

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Forest Simulator — Test Suites</title>
+    <style>
+        body { margin: 0; background: #0d0d0d; color: #ccc; font-family: 'Roboto Mono', monospace; padding: 40px; }
+        h1 { color: #fff; font-size: 1.1rem; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 30px; }
+        a.suite {
+            display: block; text-decoration: none;
+            background: #151515; border: 1px solid #333; border-radius: 4px;
+            padding: 16px 20px; margin-bottom: 12px;
+            transition: border-color 0.15s;
+        }
+        a.suite:hover { border-color: #a29bfe; }
+        .suite-name { color: #a29bfe; font-weight: bold; font-size: 1rem; }
+        .suite-desc { color: #888; font-size: 0.82rem; margin-top: 4px; }
+    </style>
+</head>
+<body>
+    <h1>Forest Simulator — Test Suites</h1>
+
+    <a class="suite" href="water/">
+        <div class="suite-name">Water Model</div>
+        <div class="suite-desc">WM-1 to WM-5 — soil water balance, transpiration, Horton runoff, flood signal</div>
+    </a>
+
+    <a class="suite" href="fire/">
+        <div class="suite-name">Fire Mechanics</div>
+        <div class="suite-desc">FM-1 to FM-5 — boundary safety, spread rate, age resistance, fdi gradient, lightning</div>
+    </a>
+
+    <a class="suite" href="seasons/">
+        <div class="suite-name">Seasonal Logic</div>
+        <div class="suite-desc">SL-1 to SL-6 — seasonal modifiers, rain/temp balance, climate presets, growth dormancy</div>
+    </a>
+</body>
+</html>

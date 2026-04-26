@@ -1,0 +1,250 @@
+{
+  "suite": "fire_mechanics",
+  "timestamp": "2026-04-26T14:12:22.873Z",
+  "commit": "f88f8d1",
+  "passed": 12,
+  "failed": 1,
+  "total": 13,
+  "uncovered_issues": [
+    "W1",
+    "W2",
+    "W3",
+    "W4",
+    "W5",
+    "S1",
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ],
+  "scenarios": [
+    {
+      "id": "FM-1",
+      "title": "Boundary safety — fire at grid corners and edges completes without invalid reads",
+      "covers": [
+        {
+          "id": "F1",
+          "doc": "model_fire.md",
+          "title": "hasBurningNeighbor reads out-of-bounds indices at grid edges",
+          "status": "fixed"
+        }
+      ],
+      "passed": 3,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Exception thrown",
+          "value": "no"
+        },
+        {
+          "label": "Edge cells still burning after tick",
+          "value": "0"
+        },
+        {
+          "label": "Cells with invalid state byte",
+          "value": "0"
+        }
+      ],
+      "checks": [
+        {
+          "label": "No exception thrown",
+          "pass": true,
+          "detail": "crashed"
+        },
+        {
+          "label": "Edge fire cells cleared after one tick",
+          "pass": true,
+          "detail": "0 still burning"
+        },
+        {
+          "label": "All state bytes valid (0/1/2)",
+          "pass": true,
+          "detail": "0 invalid"
+        }
+      ]
+    },
+    {
+      "id": "FM-2",
+      "title": "Sapling spread rate — ~80% of sapling neighbors ignite from a burning cell",
+      "covers": [
+        {
+          "id": "F4",
+          "doc": "model_fire.md",
+          "title": "Sapling baseFlam 0.80 makes young forests always fire-prone",
+          "status": "open"
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "values": [
+        {
+          "label": "Trials",
+          "value": "20"
+        },
+        {
+          "label": "Average neighbors ignited / trial",
+          "value": "7.3 of 8"
+        },
+        {
+          "label": "Average ignition rate",
+          "value": "91%"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Average ignition rate > 60%",
+          "pass": true,
+          "detail": "got 91%"
+        },
+        {
+          "label": "Average ignition rate < 100%",
+          "pass": true,
+          "detail": "deterministic — no stochasticity"
+        }
+      ]
+    },
+    {
+      "id": "FM-3",
+      "title": "Age-based resistance — old-growth forest sustains less fire damage than saplings",
+      "covers": [
+        {
+          "id": "F4",
+          "doc": "model_fire.md",
+          "title": "Sapling baseFlam 0.80 makes young forests always fire-prone",
+          "status": "open"
+        }
+      ],
+      "passed": 1,
+      "failed": 1,
+      "values": [
+        {
+          "label": "% cleared in sapling forest (15 seasons)",
+          "value": "86.1%"
+        },
+        {
+          "label": "% cleared in old-growth forest (15 seasons)",
+          "value": "90.0%"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Old-growth loses less cover than saplings",
+          "pass": false,
+          "detail": "old-growth=90.0% sapling=86.1%"
+        },
+        {
+          "label": "Sapling forest loses > 2% cover (fire spreads noticeably)",
+          "pass": true,
+          "detail": "only 86.1% cleared"
+        }
+      ]
+    },
+    {
+      "id": "FM-4",
+      "title": "fireDangerIndex gradient — increases monotonically with heat and drought",
+      "covers": [
+        {
+          "id": "F2",
+          "doc": "model_fire.md",
+          "title": "environmentalFlam steps to 0.95 hard cap above fireDangerIndex 1.5",
+          "status": "open"
+        },
+        {
+          "id": "F3",
+          "doc": "model_fire.md",
+          "title": "pLightning uses three discrete step levels — no gradient",
+          "status": "open"
+        },
+        {
+          "id": "F5",
+          "doc": "model_fire.md",
+          "title": "fireDangerIndex tempStress baseline 15°C may be too high for boreal",
+          "status": "open"
+        }
+      ],
+      "passed": 4,
+      "failed": 0,
+      "values": [
+        {
+          "label": "fdi cool+wet   (ta=0, rb=2.0)",
+          "value": "0.562"
+        },
+        {
+          "label": "fdi warm+mild  (ta=5, rb=0.8)",
+          "value": "2.664"
+        },
+        {
+          "label": "fdi hot+dry    (ta=8, rb=0.2)",
+          "value": "2.948"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Warm+mild danger > cool+wet",
+          "pass": true,
+          "detail": "mid=2.664 low=0.562"
+        },
+        {
+          "label": "Hot+dry danger > warm+mild",
+          "pass": true,
+          "detail": "high=2.948 mid=2.664"
+        },
+        {
+          "label": "Hot+dry exceeds threshold 1.0",
+          "pass": true,
+          "detail": "got 2.948"
+        },
+        {
+          "label": "Cool+wet stays below 1.0",
+          "pass": true,
+          "detail": "got 0.562"
+        }
+      ]
+    },
+    {
+      "id": "FM-5",
+      "title": "Lightning ignition rate scales with fireDangerIndex",
+      "covers": [
+        {
+          "id": "F3",
+          "doc": "model_fire.md",
+          "title": "pLightning uses three discrete step levels — no gradient",
+          "status": "open"
+        }
+      ],
+      "passed": 2,
+      "failed": 0,
+      "values": [
+        {
+          "label": "fdi (cool+wet)",
+          "value": "0.994"
+        },
+        {
+          "label": "fdi (hot+dry)",
+          "value": "2.500"
+        },
+        {
+          "label": "Lightning ignitions over 20 ticks (cool+wet)",
+          "value": "2560"
+        },
+        {
+          "label": "Lightning ignitions over 20 ticks (hot+dry)",
+          "value": "59984"
+        }
+      ],
+      "checks": [
+        {
+          "label": "Hot+dry fdi > 1.0 (elevated lightning tier)",
+          "pass": true,
+          "detail": "got 2.500"
+        },
+        {
+          "label": "Hot+dry ignitions > cool+wet ignitions",
+          "pass": true,
+          "detail": "hot=59984 cool=2560"
+        }
+      ]
+    }
+  ]
+}

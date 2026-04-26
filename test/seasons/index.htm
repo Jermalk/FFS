@@ -18,17 +18,20 @@
         #summary.all-pass { background: #1a3a1a; color: #00ff00; border: 1px solid #00ff00; }
         #summary.has-fail  { background: #3a1a1a; color: #ff4757; border: 1px solid #ff4757; }
         #running { color: #fab1a0; margin-bottom: 15px; }
+        .back { font-size: 0.8rem; color: #666; margin-bottom: 16px; }
+        .back a { color: #a29bfe; text-decoration: none; }
     </style>
 </head>
 <body>
+    <div class="back"><a href="../">&larr; all tests</a></div>
     <h1>Seasonal Logic — Behaviour Tests (SL-1 to SL-6)</h1>
     <div id="running">Running scenarios… (this may take 30–60 seconds)</div>
     <div id="output"></div>
     <div id="summary"></div>
 
 <script type="module">
-import { createSuite } from './test_framework.js';
-import { registerScenarios } from './tests/seasonal_logic.js';
+import { createSuite } from '../../test_framework.js';
+import { registerScenarios } from '../../tests/seasonal_logic.js';
 const suite = createSuite('seasonal_logic', 'Seasonal Logic');
 registerScenarios(suite.scenario);
 suite.run();
