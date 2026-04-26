@@ -216,8 +216,8 @@ function renderChart() {
 
     const bands = [
         { title: 'TEMPERATURE (°C)',  series: [{ arr: history.temp,      color: '#ff6b6b', yMin: tMin, yMax: tMax, lbl: null   }] },
-        { title: 'RAIN & SOIL WATER', series: [{ arr: history.rain,      color: '#74b9ff', yMin: 0,    yMax: 1,    lbl: 'Rain' },
-                                                { arr: history.soilWater, color: '#0abde3', yMin: 0,    yMax: 1,    lbl: 'Soil' }] },
+        { title: 'RAIN & SOIL WATER', series: [{ arr: history.rain,      color: '#5dade2', yMin: 0,    yMax: 1,    lbl: 'Rain' },
+                                                { arr: history.soilWater, color: '#f39c12', yMin: 0,    yMax: 1,    lbl: 'Soil' }] },
         { title: 'BIOMASS',           series: [{ arr: history.biomass,   color: '#55efc4', yMin: 0,    yMax: 1,    lbl: null   }] },
         { title: 'FIRE DANGER',       series: [{ arr: history.danger,    color: '#ff9f43', yMin: 0,    yMax: 3,    lbl: null   }] },
     ];
@@ -264,12 +264,11 @@ function renderChart() {
             ctx.textAlign    = 'right';
             ctx.textBaseline = 'top';
             const tw = ctx.measureText(lbl).width;
-            ctx.fillStyle = '#aaa';
-            ctx.fillText(lbl, lx, y0 + 4);
-            lx -= tw + 4;
             ctx.fillStyle = color;
-            ctx.fillRect(lx - 10, y0 + 7, 10, 2);
-            lx -= 14;
+            ctx.fillText(lbl, lx, y0 + 4);
+            lx -= tw + 6;
+            ctx.fillRect(lx - 12, y0 + 6, 12, 3);
+            lx -= 16;
         });
 
         // Draw each series line
