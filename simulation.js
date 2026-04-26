@@ -347,7 +347,9 @@ function renderChart() {
     ctx.setLineDash([]);
 
     // P2 — parameter change event markers
-    events.forEach(ev => {
+    // Labels are distributed across the 4 bands (evIndex % 4) so they never
+    // land on the band-title row (y0+3) and don't all pile at y=4.
+    events.forEach((ev, evIndex) => {
         if (ev.year < y0yr || ev.year > yNyr + gridInterval) return;
         const ex = Math.min(yearToX(ev.year), ML + chartW);
         const nearRight = ex > ML + chartW * 0.75;
@@ -358,13 +360,14 @@ function renderChart() {
         ctx.beginPath(); ctx.moveTo(ex, 0); ctx.lineTo(ex, chartH); ctx.stroke();
         ctx.setLineDash([]);
 
+        const bandTop = (evIndex % 4) * bH;
         ctx.font         = '9px Roboto Mono, monospace';
         ctx.textBaseline = 'top';
         ctx.textAlign    = nearRight ? 'right' : 'left';
         const lx = nearRight ? ex - 3 : ex + 3;
         ev.labels.forEach(({ text, color }, i) => {
             ctx.fillStyle = color;
-            ctx.fillText(text, lx, 4 + i * 12);
+            ctx.fillText(text, lx, bandTop + PAD / 2 + i * 12);
         });
     });
 }
