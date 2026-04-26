@@ -73,7 +73,7 @@ export class SimulationEngine {
     updateWeather() {
         let tMod = 0, rMod = 0;
         if      (this.season === 0) { tMod =  -5; rMod =  0.2; }
-        else if (this.season === 1) { tMod =  12; rMod = -0.6; }
+        else if (this.season === 1) { tMod =  12; rMod = -0.45; }
         else if (this.season === 2) { tMod =   0; rMod = -0.1; }
         else if (this.season === 3) { tMod = -10; rMod =  0.1; }
 
