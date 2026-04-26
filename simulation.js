@@ -31,10 +31,13 @@ class Ecosystem {
 
         // Params
         this.params = {
-            tempAnomaly: 0,
-            rainBias:    1.0,
-            speed:       60,
-            sensitivity: 1.0
+            tempAnomaly:     0,
+            rainBias:        1.0,
+            speed:           60,
+            sensitivity:     1.0,
+            basalMetabolism: 0.03,
+            growthRate:      1.0,
+            fireFreq:        1.0
         };
 
         this.offsets = [-width-1, -width, -width+1, -1, 1, width-1, width, width+1];
@@ -255,7 +258,7 @@ class Ecosystem {
         // B. OUTFLOW
         // Basal metabolism: FIXED — sensitivity does NOT affect this.
         // All forests need 0.03 water/tick to survive.
-        const basalMetabolism = 0.03;
+        const basalMetabolism = this.params.basalMetabolism;
 
         // Heat stress via Clausius-Clapeyron approximation — sensitivity scales this.
         const heatMultiplier = Math.pow(1.07, Math.max(0, this.params.tempAnomaly));
@@ -308,12 +311,12 @@ class Ecosystem {
             const excess = (this.soilWater - OPTIMAL_MOISTURE) / (1 - OPTIMAL_MOISTURE);
             moistureFactor = 1 - (excess * excess * 0.6);
         }
-        const pGrowth = 0.008 * moistureFactor / sensitivity;
+        const pGrowth = 0.008 * moistureFactor * this.params.growthRate / sensitivity;
 
         // Lightning ignition rate scales with fire danger
-        let pLightning = 0.00001;
-        if (this.fireDangerIndex > 1.0) pLightning = 0.0002;
-        if (this.fireDangerIndex > 2.0) pLightning = 0.002;
+        let pLightning = 0.00001 * this.params.fireFreq;
+        if (this.fireDangerIndex > 1.0) pLightning = 0.0002 * this.params.fireFreq;
+        if (this.fireDangerIndex > 2.0) pLightning = 0.002  * this.params.fireFreq;
 
         // Drought dieback — Optimistic threshold < 0.091, Normal < 0.13, Pessimistic < 0.195
         let diebackThreshold = 0.13 * sensitivity;
@@ -466,26 +469,46 @@ class Ecosystem {
 window.onload = function () {
     window.sim = new Ecosystem('simCanvas', 800, 600);
 
-    document.getElementById('in-speed').addEventListener('input', (e) =>
-        sim.params.speed = parseInt(e.target.value));
     document.getElementById('btn-pause').addEventListener('click', () => sim.togglePause());
     document.getElementById('btn-step').addEventListener('click',  () => sim.stepYear());
     document.getElementById('btn-reset').addEventListener('click', () => sim.reset());
+
+    document.getElementById('in-speed').addEventListener('input', (e) =>
+        sim.params.speed = parseInt(e.target.value));
 
     document.getElementById('in-scenario').addEventListener('change', (e) =>
         sim.params.sensitivity = parseFloat(e.target.value));
 
     document.getElementById('in-temp-bias').addEventListener('input', (e) => {
-        const val = parseInt(e.target.value) / 10;
+        const val = parseFloat(e.target.value);
         sim.params.tempAnomaly = val;
         document.getElementById('val-temp-bias').innerText = "+" + val.toFixed(1) + "°C";
     });
+
     document.getElementById('in-rain-bias').addEventListener('input', (e) => {
-        const val = parseInt(e.target.value) / 10;
+        const val = parseFloat(e.target.value);
         sim.params.rainBias = val;
         let lbl = "Normal";
         if (val < 1) lbl = "Drought";
         if (val > 1) lbl = "Wet";
-        document.getElementById('val-rain-bias').innerText = `${lbl} (${val}x)`;
+        document.getElementById('val-rain-bias').innerText = `${lbl} (${val.toFixed(1)}×)`;
+    });
+
+    document.getElementById('in-metabolism').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        sim.params.basalMetabolism = val;
+        document.getElementById('val-metabolism').innerText = val.toFixed(3);
+    });
+
+    document.getElementById('in-growth').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        sim.params.growthRate = val;
+        document.getElementById('val-growth').innerText = val.toFixed(1) + "×";
+    });
+
+    document.getElementById('in-fire').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        sim.params.fireFreq = val;
+        document.getElementById('val-fire').innerText = val.toFixed(1) + "×";
     });
 };
