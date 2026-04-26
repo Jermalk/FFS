@@ -284,6 +284,21 @@ Season start (S4)
 
 ---
 
+## Automated Tests
+
+`test_seasonal.htm` — 42 checks, 6 scenarios. Requires `python3 -m http.server 8080` (ES modules blocked on `file://`).
+
+| Scenario | What it checks | S-fixes covered |
+|---|---|---|
+| SL-1 | Preset arithmetic: sum(tMod)=0, sum(rMod)=0, driest rain ≥ 0.05 | S1, S2, S3 |
+| SL-2 | Fresh engine: ticks=3/season=3/year=0; first tick → Spring/Year 1 | S4 |
+| SL-3 | 50yr runtime mean ≈ BASE_TEMP ±1°C, BASE_RAIN ±0.04 for 3 presets | S2, S3 |
+| SL-4 | Boreal winter tick: zero growth; boreal summer tick: ~3800 trees | S5 |
+| SL-5 | Temp ordering Boreal < Temperate < Mediterranean < Tropical; semi-arid driest soil | S6 |
+| SL-6 | setClimate() resets year=0, ticks=3, season=3 | S6 |
+
+---
+
 ## Calibration Targets (post-fix)
 
 After all S-series fixes, the system should satisfy:
