@@ -15,4 +15,8 @@ export const ISSUES = {
     F3: { doc: 'model_fire.md', title: 'pLightning uses three discrete step levels — no gradient',              status: 'fixed' },
     F4: { doc: 'model_fire.md', title: 'Sapling baseFlam 0.80 makes young forests always fire-prone',           status: 'open' },
     F5: { doc: 'model_fire.md', title: 'fireDangerIndex tempStress baseline 15°C may be too high for boreal',  status: 'open' },
+    SP1: { doc: 'sensitivity', title: 'Sensitivity produces no meaningful biomass differentiation at equilibrium', status: 'open' },
+    SP2: { doc: 'sensitivity', title: 'Sensitivity has no meaningful effect on fire danger gradient',              status: 'open' },
+    SP3: { doc: 'sensitivity', title: 'Sensitivity does not meaningfully differentiate growth recovery speed',     status: 'open' },
+    SP4: { doc: 'sensitivity', title: 'Sensitivity does not differentiate resilience under moderate climate stress', status: 'open' },
 };
