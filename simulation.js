@@ -150,6 +150,148 @@ function updateUI(els, engine) {
     els.yearOverlay.innerText = `Year ${engine.year}`;
 }
 
+// ---- History chart ---------------------------------------------------------
+
+const history = { year: [], temp: [], rain: [], soilWater: [], biomass: [], danger: [] };
+let chartVisible = false;
+
+function toggleChart() {
+    chartVisible = !chartVisible;
+    document.getElementById('chart-panel').classList.toggle('visible', chartVisible);
+    if (chartVisible) renderChart();
+}
+
+function fmtY(v) {
+    return Math.abs(v) >= 10 ? v.toFixed(0) : v.toFixed(1);
+}
+
+function renderChart() {
+    const canvas = document.getElementById('chartCanvas');
+    const w = canvas.offsetWidth;
+    const h = canvas.offsetHeight;
+    if (w === 0 || h === 0) return;
+    canvas.width  = w;
+    canvas.height = h;
+
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = '#0d0d0d';
+    ctx.fillRect(0, 0, w, h);
+
+    const n = history.year.length;
+    if (n < 2) {
+        ctx.fillStyle    = '#555';
+        ctx.font         = '13px Roboto Mono, monospace';
+        ctx.textAlign    = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('Run the simulation to gather data', w / 2, h / 2);
+        return;
+    }
+
+    const ML = 44, MR = 8, MB = 16;
+    const chartW = w - ML - MR;
+    const chartH = h - MB;
+    const bH  = Math.floor(chartH / 4);  // band height
+    const PAD = 10;                       // vertical padding within each band
+
+    // Downsample to at most one point per horizontal pixel
+    const pts  = Math.min(n, chartW);
+    const span = Math.max(1, pts - 1);
+    function getVal(arr, i) { return arr[Math.floor(i * (n - 1) / span)]; }
+
+    // Dynamic temperature range
+    let tMin = Infinity, tMax = -Infinity;
+    for (let i = 0; i < n; i++) {
+        if (history.temp[i] < tMin) tMin = history.temp[i];
+        if (history.temp[i] > tMax) tMax = history.temp[i];
+    }
+    tMin = Math.floor(tMin) - 2;
+    tMax = Math.ceil(tMax)  + 2;
+
+    const bands = [
+        { title: 'TEMPERATURE (°C)',  series: [{ arr: history.temp,      color: '#ff6b6b', yMin: tMin, yMax: tMax, lbl: null   }] },
+        { title: 'RAIN & SOIL WATER', series: [{ arr: history.rain,      color: '#74b9ff', yMin: 0,    yMax: 1,    lbl: 'Rain' },
+                                                { arr: history.soilWater, color: '#0abde3', yMin: 0,    yMax: 1,    lbl: 'Soil' }] },
+        { title: 'BIOMASS',           series: [{ arr: history.biomass,   color: '#55efc4', yMin: 0,    yMax: 1,    lbl: null   }] },
+        { title: 'FIRE DANGER',       series: [{ arr: history.danger,    color: '#ff9f43', yMin: 0,    yMax: 3,    lbl: null   }] },
+    ];
+
+    bands.forEach(({ title, series }, bi) => {
+        const y0 = bi * bH;
+        const pH = bH - PAD * 2;
+        const { yMin, yMax } = series[0];
+        const range = yMax - yMin;
+
+        // Band separator line
+        ctx.strokeStyle = '#2a2a2a';
+        ctx.lineWidth   = 1;
+        ctx.beginPath(); ctx.moveTo(ML, y0); ctx.lineTo(w - MR, y0); ctx.stroke();
+
+        // Grid lines at 0 / 50 / 100 % of band range
+        ctx.setLineDash([2, 4]);
+        [0, 0.5, 1].forEach(t => {
+            const py  = y0 + PAD + (1 - t) * pH;
+            const val = yMin + t * range;
+            ctx.strokeStyle = '#1c1c1c';
+            ctx.lineWidth   = 1;
+            ctx.beginPath(); ctx.moveTo(ML, py); ctx.lineTo(w - MR, py); ctx.stroke();
+            ctx.fillStyle    = '#444';
+            ctx.font         = '9px Roboto Mono, monospace';
+            ctx.textAlign    = 'right';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(fmtY(val), ML - 4, py);
+        });
+        ctx.setLineDash([]);
+
+        // Band title (left)
+        ctx.fillStyle    = '#666';
+        ctx.font         = '10px Roboto Mono, monospace';
+        ctx.textAlign    = 'left';
+        ctx.textBaseline = 'top';
+        ctx.fillText(title, ML + 4, y0 + 3);
+
+        // Series legend (right-aligned, only when lbl is set)
+        let lx = w - MR - 4;
+        [...series].reverse().forEach(({ color, lbl }) => {
+            if (!lbl) return;
+            ctx.font         = '9px Roboto Mono, monospace';
+            ctx.textAlign    = 'right';
+            ctx.textBaseline = 'top';
+            const tw = ctx.measureText(lbl).width;
+            ctx.fillStyle = '#888';
+            ctx.fillText(lbl, lx, y0 + 4);
+            lx -= tw + 4;
+            ctx.fillStyle = color;
+            ctx.fillRect(lx - 10, y0 + 7, 10, 2);
+            lx -= 14;
+        });
+
+        // Draw each series line
+        series.forEach(({ arr, color, yMin: sMin, yMax: sMax }) => {
+            const sRange = Math.max(sMax - sMin, 1e-9);
+            ctx.strokeStyle = color;
+            ctx.lineWidth   = 1.5;
+            ctx.beginPath();
+            for (let i = 0; i < pts; i++) {
+                const x = ML + i * chartW / span;
+                const t = Math.max(0, Math.min(1, (getVal(arr, i) - sMin) / sRange));
+                const y = y0 + PAD + (1 - t) * pH;
+                i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+            }
+            ctx.stroke();
+        });
+    });
+
+    // X axis: year labels at left, centre, right
+    const y0yr = history.year[0];
+    const yNyr = history.year[n - 1];
+    ctx.fillStyle    = '#555';
+    ctx.font         = '9px Roboto Mono, monospace';
+    ctx.textBaseline = 'bottom';
+    ctx.textAlign = 'left';   ctx.fillText('Yr ' + y0yr,                          ML,            h);
+    ctx.textAlign = 'center'; ctx.fillText('Yr ' + Math.round((y0yr + yNyr) / 2), ML + chartW/2, h);
+    ctx.textAlign = 'right';  ctx.fillText('Yr ' + yNyr,                          w - MR,        h);
+}
+
 // ---- App -------------------------------------------------------------------
 
 window.onload = function () {
@@ -197,6 +339,12 @@ window.onload = function () {
             lastTimestamp = timestamp - (elapsed % interval);
             engine.update();
             tickCount++;
+            history.year.push(engine.year);
+            history.temp.push(engine.currentTemp);
+            history.rain.push(engine.currentRain);
+            history.soilWater.push(engine.soilWater);
+            history.biomass.push(engine.stats.biomass / engine.size);
+            history.danger.push(engine.fireDangerIndex);
             draw(glState, engine);
             updateUI(els, engine);
         }
@@ -233,8 +381,10 @@ window.onload = function () {
     document.getElementById('btn-step').addEventListener('click',  stepYear);
     document.getElementById('btn-reset').addEventListener('click', () => {
         engine.reset();
+        Object.keys(history).forEach(k => { history[k] = []; });
         draw(glState, engine);
         updateUI(els, engine);
+        if (chartVisible) renderChart();
     });
 
     document.getElementById('in-speed').addEventListener('input', (e) =>
@@ -275,6 +425,10 @@ window.onload = function () {
         engine.params.fireFreq = val;
         document.getElementById('val-fire').innerText = val.toFixed(1) + "×";
     });
+
+    document.getElementById('btn-chart').addEventListener('click', toggleChart);
+    document.getElementById('btn-chart-close').addEventListener('click', toggleChart);
+    window.addEventListener('resize', () => { if (chartVisible) renderChart(); });
 
     window.sim = engine; // expose for browser console debugging
 };

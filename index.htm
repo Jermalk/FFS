@@ -147,6 +147,24 @@
         .val-in  { color: #00ff00; }
         .val-out { color: #ff4757; }
         .volatility-badge { font-size: 0.65rem; color: #fab1a0; text-align: center; margin-top: 5px; }
+
+        /* --- CHART PANEL --- */
+        #chart-panel {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #0d0d0d; z-index: 5;
+            display: none; flex-direction: column;
+        }
+        #chart-panel.visible { display: flex; }
+        #chart-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 14px; border-bottom: 1px solid #333; flex-shrink: 0;
+            font-size: 0.85rem; color: #a29bfe; font-weight: bold;
+        }
+        #chartCanvas { display: block; flex: 1; width: 100%; min-height: 0; }
+        .btn-chart-close { background: #2d3436; color: #ccc; font-size: 0.8rem; padding: 6px 14px; }
+        .btn-chart-close:hover { background: #636e72; color: #fff; }
+        #btn-chart { background: #2d6a4f; }
+        #btn-chart:hover { background: #40916c; }
     </style>
 </head>
 <body>
@@ -235,6 +253,7 @@
     <div id="sidebar">
         <h2>Eco-System</h2>
         <button class="btn-icon" onclick="toggleSettings()">&#9881; Settings &amp; Physics</button>
+        <button class="btn-icon" id="btn-chart">&#9783; History Charts</button>
 
         <div class="panel">
             <div class="btn-group">
@@ -288,6 +307,13 @@
     <div id="viewport">
         <canvas id="simCanvas"></canvas>
         <div id="year-overlay">Year 0</div>
+        <div id="chart-panel">
+            <div id="chart-header">
+                <span>History Charts</span>
+                <button class="btn-chart-close" id="btn-chart-close">&#xD7; Close</button>
+            </div>
+            <canvas id="chartCanvas"></canvas>
+        </div>
     </div>
 
     <script type="module" src="simulation.js"></script>
