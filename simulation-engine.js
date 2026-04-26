@@ -1,6 +1,60 @@
 // simulation-engine.js — pure simulation engine, no DOM / WebGL dependencies
 // Runs identically in a browser (via <script type="module">) and in Node.js.
 
+// Seasonal modifiers must sum to 0 per preset so BASE_TEMP/BASE_RAIN are true annual means.
+export const CLIMATE_PRESETS = {
+    temperate: {
+        label: 'Temperate',
+        BASE_TEMP: 12, BASE_RAIN: 0.55,
+        seasons: [
+            { tMod:  +3, rMod: +0.09 },  // Spring
+            { tMod: +10, rMod: +0.01 },  // Summer
+            { tMod:  +2, rMod: +0.05 },  // Autumn
+            { tMod: -15, rMod: -0.15 },  // Winter
+        ]
+    },
+    mediterranean: {
+        label: 'Mediterranean',
+        BASE_TEMP: 18, BASE_RAIN: 0.40,
+        seasons: [
+            { tMod:  -5, rMod: +0.15 },  // Spring
+            { tMod: +12, rMod: -0.35 },  // Summer
+            { tMod:  +1, rMod: +0.10 },  // Autumn
+            { tMod:  -8, rMod: +0.10 },  // Winter
+        ]
+    },
+    tropical: {
+        label: 'Tropical (Wet/Dry)',
+        BASE_TEMP: 27, BASE_RAIN: 0.60,
+        seasons: [
+            { tMod:  +1, rMod: -0.25 },  // Dry onset
+            { tMod:  +3, rMod: -0.40 },  // Peak dry
+            { tMod:   0, rMod: +0.30 },  // Wet onset
+            { tMod:  -4, rMod: +0.35 },  // Peak wet
+        ]
+    },
+    boreal: {
+        label: 'Boreal',
+        BASE_TEMP: 4, BASE_RAIN: 0.45,
+        seasons: [
+            { tMod:  +6, rMod: +0.05 },  // Spring
+            { tMod: +16, rMod: +0.04 },  // Summer
+            { tMod:  +4, rMod: +0.01 },  // Autumn
+            { tMod: -26, rMod: -0.10 },  // Winter
+        ]
+    },
+    semiarid: {
+        label: 'Semi-Arid',
+        BASE_TEMP: 22, BASE_RAIN: 0.28,
+        seasons: [
+            { tMod:  +3, rMod: +0.07 },  // Spring
+            { tMod: +10, rMod: -0.15 },  // Summer
+            { tMod:  +2, rMod: +0.05 },  // Autumn
+            { tMod: -15, rMod: +0.03 },  // Winter
+        ]
+    },
+};
+
 export class SimulationEngine {
     constructor(width, height) {
         this.width  = width;
@@ -21,10 +75,8 @@ export class SimulationEngine {
         this.lastInflow  = 0;
         this.lastOutflow = 0;
 
-        this.BASE_TEMP = 20;
-        this.BASE_RAIN = 0.5;
-
         this.params = {
+            climateType:     'temperate',
             tempAnomaly:     0,
             rainBias:        1.0,
             speed:           60,
@@ -71,19 +123,18 @@ export class SimulationEngine {
     reset() { this.init(); }
 
     updateWeather() {
-        let tMod = 0, rMod = 0;
-        if      (this.season === 0) { tMod =  -5; rMod =  0.30; }
-        else if (this.season === 1) { tMod =  12; rMod = -0.45; }
-        else if (this.season === 2) { tMod =  +1; rMod = -0.05; }
-        else if (this.season === 3) { tMod =  -8; rMod =  0.20; }
+        const preset = CLIMATE_PRESETS[this.params.climateType];
+        const { tMod, rMod } = preset.seasons[this.season];
+        const BASE_TEMP = preset.BASE_TEMP;
+        const BASE_RAIN = preset.BASE_RAIN;
 
         const baseNoise = (Math.random() * 2 - 1);
-        this.currentTemp = this.BASE_TEMP + tMod + this.params.tempAnomaly + baseNoise;
+        this.currentTemp = BASE_TEMP + tMod + this.params.tempAnomaly + baseNoise;
 
         const volatility = 1.0 + (this.params.tempAnomaly * 0.1);
         const rainNoise  = (Math.random() * 0.4 - 0.2) * volatility;
         this.currentRain = Math.max(0, Math.min(1,
-            (this.BASE_RAIN + rMod + rainNoise) * this.params.rainBias
+            (BASE_RAIN + rMod + rainNoise) * this.params.rainBias
         ));
 
         const sensitivity = this.params.sensitivity;
@@ -208,6 +259,12 @@ export class SimulationEngine {
         [this.ageGrid,   this.nextAgeGrid]   = [this.nextAgeGrid,   this.ageGrid];
 
         this.stats = { biomass, oldGrowth };
+    }
+
+    setClimate(type) {
+        if (!CLIMATE_PRESETS[type]) return;
+        this.params.climateType = type;
+        this.reset();
     }
 
     hasBurningNeighbor(i) {

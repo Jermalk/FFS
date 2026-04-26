@@ -175,6 +175,22 @@
         <h2>Configuration <button class="btn-close" onclick="toggleSettings()">&#xD7;</button></h2>
 
         <div class="drawer-section">
+            <div class="section-title" style="color: #55efc4;">Climate Type</div>
+            <label>
+                Climate
+                <div class="help-icon">?<span class="tooltip-text">Regional climate archetype — sets baseline temperature, rainfall, and seasonal patterns. Changing this resets the simulation.
+                    <span class="def-val">Default: Temperate</span></span></div>
+            </label>
+            <select id="in-climate">
+                <option value="temperate" selected>Temperate</option>
+                <option value="mediterranean">Mediterranean</option>
+                <option value="tropical">Tropical (Wet/Dry)</option>
+                <option value="boreal">Boreal</option>
+                <option value="semiarid">Semi-Arid</option>
+            </select>
+        </div>
+
+        <div class="drawer-section">
             <div class="section-title" style="color: #ff9f43;">Atmosphere</div>
 
             <label>

@@ -257,7 +257,9 @@ Seasonal modifier design targets (balanced so mean = 0):
 
 **Climate is orthogonal to sensitivity/fireFreq/etc.** — presets do not override those sliders.
 
-**Status:** Open — main deliverable of this session
+**Status:** Done — commit `feat(S6)`
+
+**Notes:** `CLIMATE_PRESETS` is exported so test runners and simulation.js can import it. Default climate changed from the interim hardcoded Mediterranean-ish values (BASE_TEMP=20, BASE_RAIN=0.50) to Temperate (BASE_TEMP=12, BASE_RAIN=0.55) — a better ecological baseline for a forest simulation. S1–S3 interim fixes to the hardcoded values are superseded by the preset definitions; each preset satisfies sum(tMod)=0 and sum(rMod)=0 by design. setClimate() calls reset() so history clears on climate change.
 
 ---
 

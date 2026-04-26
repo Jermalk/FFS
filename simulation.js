@@ -1,7 +1,7 @@
 // simulation.js — browser wiring: WebGL renderer + UI + loop
 // Pure simulation logic lives in simulation-engine.js.
 
-import { SimulationEngine } from './simulation-engine.js';
+import { SimulationEngine, CLIMATE_PRESETS } from './simulation-engine.js';
 
 // ---- WebGL Renderer --------------------------------------------------------
 
@@ -424,6 +424,14 @@ window.onload = function () {
         const val = parseFloat(e.target.value);
         engine.params.fireFreq = val;
         document.getElementById('val-fire').innerText = val.toFixed(1) + "×";
+    });
+
+    document.getElementById('in-climate').addEventListener('change', (e) => {
+        engine.setClimate(e.target.value);
+        Object.keys(history).forEach(k => { history[k] = []; });
+        draw(glState, engine);
+        updateUI(els, engine);
+        if (chartVisible) renderChart();
     });
 
     document.getElementById('btn-chart').addEventListener('click', toggleChart);
