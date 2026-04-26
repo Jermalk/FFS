@@ -143,7 +143,9 @@ Initialise `this.ticks = 3` in `init()` so the first `update()` produces `ticks=
 (Spring) and `year=1`. Alternatively set `this.season = 3` before calling `updateWeather()` in init
 and start year counter at 0 for the "pre-run" state.
 
-**Status:** Open — small isolated fix, can be its own commit
+**Status:** Done — commit `fix(S4)`
+
+**Notes:** `this.ticks = 3` in init() so the first update() produces ticks=4, season=0 (Spring), year=1. Initial pause state displays Year 0 / Winter (pre-simulation). History recording begins at Year 1 / Spring.
 
 ---
 

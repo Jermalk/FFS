@@ -46,8 +46,8 @@ export class SimulationEngine {
 
     init() {
         this.year      = 0;
-        this.ticks     = 0;
-        this.season    = 0;
+        this.ticks     = 3;   // first update() → ticks=4 → season=0 (Spring), year=1
+        this.season    = 3;
         this.soilWater = 1.0;
         let b = 0, o = 0;
 
