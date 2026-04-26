@@ -10,4 +10,9 @@ export const ISSUES = {
     S4: { doc: 'model_seasonal_logic.md', title: 'Simulation starts in Summer, not Spring',                     status: 'fixed' },
     S5: { doc: 'model_seasonal_logic.md', title: 'Growth rate is not seasonally modulated (no winter dormancy)', status: 'fixed' },
     S6: { doc: 'model_seasonal_logic.md', title: 'Single hardcoded climate; no user choice',                    status: 'fixed' },
+    F1: { doc: 'model_fire.md', title: 'hasBurningNeighbor reads out-of-bounds indices at grid edges',          status: 'fixed' },
+    F2: { doc: 'model_fire.md', title: 'environmentalFlam steps to 0.95 hard cap above fireDangerIndex 1.5',   status: 'open' },
+    F3: { doc: 'model_fire.md', title: 'pLightning uses three discrete step levels — no gradient',              status: 'open' },
+    F4: { doc: 'model_fire.md', title: 'Sapling baseFlam 0.80 makes young forests always fire-prone',           status: 'open' },
+    F5: { doc: 'model_fire.md', title: 'fireDangerIndex tempStress baseline 15°C may be too high for boreal',  status: 'open' },
 };
