@@ -261,7 +261,8 @@
                     <span class="def-val">Default: 60 ticks/s = 15 yr/s</span></span></div>
                 <span id="val-speed" class="val-display">60 t/s</span>
             </label>
-            <input type="range" id="in-speed" min="1" max="60" value="60">
+            <input type="range" id="in-speed" min="1" max="60" value="60"
+                   oninput="document.getElementById('val-speed').innerText=this.value+' t/s'">
         </div>
 
         <button class="btn-reset" id="btn-reset">Reset World</button>

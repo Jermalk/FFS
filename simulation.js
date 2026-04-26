@@ -148,6 +148,7 @@ function updateUI(els, engine) {
     els.biomass.innerText   = ((engine.stats.biomass   / total) * 100).toFixed(0) + "%";
     els.oldGrowth.innerText = ((engine.stats.oldGrowth / total) * 100).toFixed(0) + "%";
     els.yearOverlay.innerText = `Year ${engine.year}`;
+    if (els.valSpeed) els.valSpeed.innerText = engine.params.speed + ' t/s';
 
     els.statClimate.innerText = CLIMATE_PRESETS[engine.params.climateType].label;
     els.statTempAnom.innerText = '+' + engine.params.tempAnomaly.toFixed(1) + '°C';
@@ -155,7 +156,6 @@ function updateUI(els, engine) {
     els.statRainBias.innerText = rb > 1.05 ? `Wet (${rb.toFixed(1)}×)` : rb < 0.95 ? `Drought (${rb.toFixed(1)}×)` : `Normal (${rb.toFixed(1)}×)`;
     const sv = engine.params.sensitivity;
     els.statSensitivity.innerText = sv < 0.9 ? 'Optimistic' : sv > 1.1 ? 'Pessimistic' : 'Normal';
-    els.valSpeed.innerText = engine.params.speed + ' t/s';
 }
 
 // ---- History chart ---------------------------------------------------------
