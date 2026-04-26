@@ -1,16 +1,30 @@
 # Forest Ecosystem Simulator
 
-A browser-based cellular automaton that models a living forest — trees grow, burn, recover, and collapse under the pressure of climate change. No install, no build step, no server required.
+A browser-based cellular automaton that models a living forest — trees grow, burn, recover, and collapse under the pressure of climate change.
 
 ---
 
 ## Quick Start
 
-1. Clone or download the repository.
-2. Open **`index.htm`** directly in any modern browser (Chrome, Firefox, Edge).
-3. The simulation starts immediately.
+### For end users — single file, no server needed
 
-That's it. One file, double-click to run.
+Build the self-contained bundle once:
+
+```bash
+python3 build.py
+```
+
+Then open **`dist/index.htm`** directly in any modern browser (Chrome, Firefox, Edge). Double-click to run — no server, no install, nothing else required.
+
+### For developers
+
+The source files use ES modules, which browsers block on `file://`. Serve the project root over HTTP:
+
+```bash
+python3 -m http.server 8080
+```
+
+Then open `http://localhost:8080/` to run the simulation and `http://localhost:8080/test/` for the test suite.
 
 ---
 
@@ -40,6 +54,8 @@ The right panel shows live readings: year, season, temperature, rainfall, ground
 | **🗠 History Charts** | Overlays a full-screen chart of the entire run history |
 | **Pause / Resume** | Freeze and unfreeze the simulation |
 | **+1 Yr** | Step forward exactly one year (four seasons) while paused |
+| **Save State** | Download a compressed `.fsc` checkpoint of the current simulation |
+| **Load State** | Restore a previously saved `.fsc` file |
 | **Reset World** | Wipe the grid and restart from Year 1 |
 
 ### Settings drawer
@@ -163,8 +179,10 @@ Committed result files live in `test_results/`.
 ## File Layout
 
 ```
-index.htm              ← open this to run the simulation
-simulation.js          ← WebGL renderer + UI wiring
+build.py               ← run once to produce dist/index.htm (end-user bundle)
+dist/index.htm         ← generated; double-click to run, not in git
+index.htm              ← dev entry point (requires HTTP server)
+simulation.js          ← WebGL renderer + UI wiring + save/load
 simulation-engine.js   ← pure simulation logic (no DOM)
 issues.js              ← registry of all known model issues (W, S, F series)
 test_framework.js      ← shared test runner (imported by test pages)
@@ -173,19 +191,38 @@ test/
   water/index.htm      ← water model test runner
   fire/index.htm       ← fire mechanics test runner
   seasons/index.htm    ← seasonal logic test runner
+  sensitivity/index.htm ← sensitivity parameter test runner
 tests/
   water_model.js       ← water model scenarios
   seasonal_logic.js    ← seasonal logic scenarios
   fire_mechanics.js    ← fire mechanics scenarios
+  sensitivity.js       ← sensitivity parameter scenarios
 test_results/
   water_model/         ← committed JSON results
   seasonal_logic/      ← committed JSON results
   fire_mechanics/      ← committed JSON results
+  sensitivity/         ← committed JSON results
 model_water.md         ← water subsystem design & issue log
 model_seasonal_logic.md ← seasonal/climate design & issue log
 model_fire.md          ← fire subsystem design & issue log
 PROGRESS.md            ← session-by-session development log
 ```
+
+---
+
+## Save / Load
+
+Click **Save State** to download a `.fsc` checkpoint file. The filename encodes what's inside:
+
+```
+forest-yr347-2026-04-26-122d7e0.fsc
+         ^^^  ^^^^^^^^^^  ^^^^^^^
+         year  save date  git commit hash of the engine that produced it
+```
+
+The commit hash lets you run `git show 122d7e0` to see exactly which engine version created the file. Click **Load State** and pick a `.fsc` file to restore the full simulation — grids, history charts, and all parameters.
+
+Files are gzip-compressed JSON; typical size 150–350 KB.
 
 ---
 
@@ -196,7 +233,9 @@ PROGRESS.md            ← session-by-session development log
 | Water balance (W1–W5) | Validated — 5 fixes applied, 15/15 tests pass |
 | Seasonal logic (S1–S6) | Validated — 6 fixes applied, 42/42 tests pass |
 | Fire mechanics (F1–F5) | Validated — F1/F2/F3 fixed; F4/F5 accepted; 13/13 tests pass |
-| Test framework | Live — unified runner, issue registry, JSON results committed |
+| Sensitivity parameter (SS-1–SS-4) | Validated — 12/12 tests pass; Pessimistic collapses at ta=4 (documented) |
+| Save / Load | Live — gzip `.fsc` format, git-traceable engine version in filename |
+| Distribution bundle | Live — `python3 build.py` produces `dist/index.htm`, no server needed |
 | `hasBurningNeighbor()` boundary bug (F1) | Fixed |
 | environmentalFlam hard cap (F2) | Fixed — smooth ramp capped at 0.80; old-growth max totalFlam = 0.85 |
 | pLightning step function (F3) | Fixed — continuous exponential, 1000× range fdi 0→3 |
