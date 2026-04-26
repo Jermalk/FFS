@@ -161,12 +161,33 @@ function updateUI(els, engine) {
 // ---- History chart ---------------------------------------------------------
 
 const history = { year: [], temp: [], rain: [], soilWater: [], biomass: [], danger: [] };
+const events  = [];
 let chartVisible = false;
 
 function toggleChart() {
     chartVisible = !chartVisible;
     document.getElementById('chart-panel').classList.toggle('visible', chartVisible);
     if (chartVisible) renderChart();
+}
+
+function recordParamChanges(snap, engine) {
+    const p = engine.params;
+    const labels = [];
+    if (Math.abs(p.tempAnomaly - snap.tempAnomaly) > 0.05) {
+        const d = p.tempAnomaly - snap.tempAnomaly;
+        labels.push({ text: (d > 0 ? '+' : '') + d.toFixed(1) + '°C', color: '#ff9f43' });
+    }
+    if (Math.abs(p.rainBias - snap.rainBias) > 0.05)
+        labels.push({ text: 'Rain ×' + p.rainBias.toFixed(1), color: '#5dade2' });
+    if (Math.abs(p.fireFreq - snap.fireFreq) > 0.05)
+        labels.push({ text: 'Fire ×' + p.fireFreq.toFixed(1), color: '#ff4757' });
+    if (p.sensitivity !== snap.sensitivity) {
+        const lbl = p.sensitivity < 0.9 ? 'Opt' : p.sensitivity > 1.1 ? 'Pess' : 'Norm';
+        labels.push({ text: '→ ' + lbl, color: '#a29bfe' });
+    }
+    if (p.climateType !== snap.climateType)
+        labels.push({ text: '→ ' + CLIMATE_PRESETS[p.climateType].label, color: '#55efc4' });
+    if (labels.length > 0) events.push({ year: engine.year, labels });
 }
 
 function fmtY(v) {
@@ -332,6 +353,8 @@ window.onload = function () {
     let isPaused = false;
     let rafId    = null;
     let lastTimestamp = 0;
+    let paramSnapshot     = null;
+    let autoResumeOnClose = false;
 
     let tickCount = 0, lastSample = performance.now();
 
@@ -383,6 +406,34 @@ window.onload = function () {
         updateUI(els, engine);
     }
 
+    window.toggleSettings = function () {
+        const drawer   = document.getElementById('settings-drawer');
+        const backdrop = document.getElementById('backdrop');
+        const isOpen   = drawer.classList.contains('open');
+        if (isOpen) {
+            drawer.classList.remove('open');
+            backdrop.classList.remove('visible');
+            if (paramSnapshot) {
+                recordParamChanges(paramSnapshot, engine);
+                paramSnapshot = null;
+                if (chartVisible) renderChart();
+            }
+            if (autoResumeOnClose && isPaused) togglePause();
+            autoResumeOnClose = false;
+        } else {
+            drawer.classList.add('open');
+            backdrop.classList.add('visible');
+            paramSnapshot = {
+                tempAnomaly: engine.params.tempAnomaly,
+                rainBias:    engine.params.rainBias,
+                fireFreq:    engine.params.fireFreq,
+                sensitivity: engine.params.sensitivity,
+                climateType: engine.params.climateType,
+            };
+            if (!isPaused) { autoResumeOnClose = true; togglePause(); }
+        }
+    };
+
     // Initial render before the loop starts
     draw(glState, engine);
     updateUI(els, engine);
@@ -394,6 +445,7 @@ window.onload = function () {
     document.getElementById('btn-reset').addEventListener('click', () => {
         engine.reset();
         Object.keys(history).forEach(k => { history[k] = []; });
+        events.length = 0;
         draw(glState, engine);
         updateUI(els, engine);
         if (chartVisible) renderChart();
