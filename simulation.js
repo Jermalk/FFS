@@ -155,6 +155,7 @@ function updateUI(els, engine) {
     els.statRainBias.innerText = rb > 1.05 ? `Wet (${rb.toFixed(1)}×)` : rb < 0.95 ? `Drought (${rb.toFixed(1)}×)` : `Normal (${rb.toFixed(1)}×)`;
     const sv = engine.params.sensitivity;
     els.statSensitivity.innerText = sv < 0.9 ? 'Optimistic' : sv > 1.1 ? 'Pessimistic' : 'Normal';
+    els.valSpeed.innerText = engine.params.speed + ' t/s';
 }
 
 // ---- History chart ---------------------------------------------------------
@@ -325,6 +326,7 @@ window.onload = function () {
         statTempAnom:    document.getElementById('stat-temp-anom'),
         statRainBias:    document.getElementById('stat-rain-bias'),
         statSensitivity: document.getElementById('stat-sensitivity'),
+        valSpeed:        document.getElementById('val-speed'),
     };
 
     let isPaused = false;
@@ -400,7 +402,7 @@ window.onload = function () {
     document.getElementById('in-speed').addEventListener('input', (e) => {
         const val = parseInt(e.target.value);
         engine.params.speed = val;
-        document.getElementById('val-speed').innerText = val + ' t/s';
+        els.valSpeed.innerText = val + ' t/s';
     });
 
     document.getElementById('in-scenario').addEventListener('change', (e) =>
