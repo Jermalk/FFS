@@ -268,14 +268,23 @@ export class SimulationEngine {
     }
 
     hasBurningNeighbor(i) {
-        if (this.stateGrid[i + this.offsets[0]] === 2) return true;
-        if (this.stateGrid[i + this.offsets[1]] === 2) return true;
-        if (this.stateGrid[i + this.offsets[2]] === 2) return true;
-        if (this.stateGrid[i + this.offsets[3]] === 2) return true;
-        if (this.stateGrid[i + this.offsets[4]] === 2) return true;
-        if (this.stateGrid[i + this.offsets[5]] === 2) return true;
-        if (this.stateGrid[i + this.offsets[6]] === 2) return true;
-        if (this.stateGrid[i + this.offsets[7]] === 2) return true;
+        const w  = this.width;
+        const x  = i % w;
+        const y  = (i / w) | 0;
+        const x0 = x > 0, x1 = x < w - 1;
+        const y0 = y > 0, y1 = y < this.height - 1;
+        if (y0) {
+            if (x0 && this.stateGrid[i - w - 1] === 2) return true;
+            if (       this.stateGrid[i - w    ] === 2) return true;
+            if (x1 && this.stateGrid[i - w + 1] === 2) return true;
+        }
+        if (x0 && this.stateGrid[i - 1] === 2) return true;
+        if (x1 && this.stateGrid[i + 1] === 2) return true;
+        if (y1) {
+            if (x0 && this.stateGrid[i + w - 1] === 2) return true;
+            if (       this.stateGrid[i + w    ] === 2) return true;
+            if (x1 && this.stateGrid[i + w + 1] === 2) return true;
+        }
         return false;
     }
 }
