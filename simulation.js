@@ -179,8 +179,8 @@ function renderChart() {
 
     const n = history.year.length;
     if (n < 2) {
-        ctx.fillStyle    = '#555';
-        ctx.font         = '13px Roboto Mono, monospace';
+        ctx.fillStyle    = '#888';
+        ctx.font         = '15px Roboto Mono, monospace';
         ctx.textAlign    = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText('Run the simulation to gather data', w / 2, h / 2);
@@ -191,7 +191,7 @@ function renderChart() {
     const chartW = w - ML - MR;
     const chartH = h - MB;
     const bH  = Math.floor(chartH / 4);  // band height
-    const PAD = 10;                       // vertical padding within each band
+    const PAD = 16;                       // vertical padding within each band
 
     // Downsample to at most one point per horizontal pixel
     const pts  = Math.min(n, chartW);
@@ -222,7 +222,7 @@ function renderChart() {
         const range = yMax - yMin;
 
         // Band separator line
-        ctx.strokeStyle = '#2a2a2a';
+        ctx.strokeStyle = '#383838';
         ctx.lineWidth   = 1;
         ctx.beginPath(); ctx.moveTo(ML, y0); ctx.lineTo(w - MR, y0); ctx.stroke();
 
@@ -231,11 +231,11 @@ function renderChart() {
         [0, 0.5, 1].forEach(t => {
             const py  = y0 + PAD + (1 - t) * pH;
             const val = yMin + t * range;
-            ctx.strokeStyle = '#1c1c1c';
+            ctx.strokeStyle = '#2a2a2a';
             ctx.lineWidth   = 1;
             ctx.beginPath(); ctx.moveTo(ML, py); ctx.lineTo(w - MR, py); ctx.stroke();
-            ctx.fillStyle    = '#444';
-            ctx.font         = '9px Roboto Mono, monospace';
+            ctx.fillStyle    = '#888';
+            ctx.font         = '10px Roboto Mono, monospace';
             ctx.textAlign    = 'right';
             ctx.textBaseline = 'middle';
             ctx.fillText(fmtY(val), ML - 4, py);
@@ -243,8 +243,8 @@ function renderChart() {
         ctx.setLineDash([]);
 
         // Band title (left)
-        ctx.fillStyle    = '#666';
-        ctx.font         = '10px Roboto Mono, monospace';
+        ctx.fillStyle    = '#c0c0c0';
+        ctx.font         = '12px Roboto Mono, monospace';
         ctx.textAlign    = 'left';
         ctx.textBaseline = 'top';
         ctx.fillText(title, ML + 4, y0 + 3);
@@ -253,11 +253,11 @@ function renderChart() {
         let lx = w - MR - 4;
         [...series].reverse().forEach(({ color, lbl }) => {
             if (!lbl) return;
-            ctx.font         = '9px Roboto Mono, monospace';
+            ctx.font         = '10px Roboto Mono, monospace';
             ctx.textAlign    = 'right';
             ctx.textBaseline = 'top';
             const tw = ctx.measureText(lbl).width;
-            ctx.fillStyle = '#888';
+            ctx.fillStyle = '#aaa';
             ctx.fillText(lbl, lx, y0 + 4);
             lx -= tw + 4;
             ctx.fillStyle = color;
@@ -284,8 +284,8 @@ function renderChart() {
     // X axis: year labels at left, centre, right
     const y0yr = history.year[0];
     const yNyr = history.year[n - 1];
-    ctx.fillStyle    = '#555';
-    ctx.font         = '9px Roboto Mono, monospace';
+    ctx.fillStyle    = '#888';
+    ctx.font         = '10px Roboto Mono, monospace';
     ctx.textBaseline = 'bottom';
     ctx.textAlign = 'left';   ctx.fillText('Yr ' + y0yr,                          ML,            h);
     ctx.textAlign = 'center'; ctx.fillText('Yr ' + Math.round((y0yr + yNyr) / 2), ML + chartW/2, h);
