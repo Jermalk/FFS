@@ -31,6 +31,7 @@ Goal: Verify that the generated code correctly implements the intended system lo
 | `test/seasons/` | Seasonal logic test runner | 42/42 checks passed (2026-04-26) |
 | `test/water/` | Water model test runner | 15/15 checks passed (2026-04-26) |
 | `test/fire/` | Fire mechanics test runner | 13/13 checks passed (2026-04-26) |
+| `test/sensitivity/` | Sensitivity parameter test runner | 12/12 checks passed (2026-04-26) |
 
 ## Validation Checklist
 
@@ -43,7 +44,7 @@ Goal: Verify that the generated code correctly implements the intended system lo
 - [x] F2 fix — environmentalFlam smooth ramp, cap 0.80 (commit d79ca6f)
 - [x] F3 fix — pLightning smooth exponential (commit 8c18708)
 - [x] All 3 test suites green — WM 15/15, FM 13/13, SL 42/42 (2026-04-26)
-- [ ] Sensitivity parameter — does it meaningfully differentiate Optimistic/Pessimistic scenarios?
+- [x] Sensitivity parameter — 12/12 checks passed; differentiates strongly (see calibration note below)
 
 ## Known Issues / Findings
 
@@ -57,6 +58,12 @@ Goal: Verify that the generated code correctly implements the intended system lo
 ### Design issue: F3 — pLightning step function — FIXED
 - **Fix (commit 8c18708):** `0.00001 * 10^min(fdi,3) * fireFreq` — continuous 1000× range from fdi=0 to fdi=3. Eliminates 20× and 10× step jumps.
 
+### Calibration: Sensitivity amplitude — may be over-aggressive under stress
+
+- **Observed (SS-4, commit 5cdd769):** ta=4, rb=0.7, 80yr — Pessimistic collapses to 0% biomass / 0% soilWater; Normal survives at 4%; Optimistic holds at 27%. Under neutral conditions (SS-1), Optimistic reaches 90% biomass vs Pessimistic 33% — a 57 ppt gap.
+- **Root cause:** sensitivity multiplies _all_ stress channels simultaneously (tempEvap, transpiration, fireDangerIndex, dieback rates, growth rate divisor). Under stress, these compound exponentially rather than linearly — modest additional anomaly tips Pessimistic past the tipping point while Optimistic is still regulated.
+- **Decision pending:** Accept as intentional (Pessimistic = severe scenario) or recalibrate the exponent so all three scenarios remain in a viable range under moderate stress. The current behaviour is ecologically defensible but the Normal scenario barely surviving (4% biomass) at ta=4 is arguably miscalibrated.
+
 ### Calibration: Temperate soilWater equilibrium
 - **Root cause (documented):** Transpiration coefficient (0.012) was calibrated at BASE_TEMP=20°C with S1 bug zeroing summer rain. After fixes: BASE_TEMP=12 (annual temp factor 4.0→2.55, −36%) + summer rain restored (+0.084/yr inflow). Annual surplus before transpiration grew from +0.027 to +0.085/yr.
 - **Fix:** Transpiration coefficient raised 0.012→0.060 (5×). Observed equilibrium: ~85% soilWater, ~70% biomass. Fire dynamics keep biomass at ~70%, limiting transpiration draw-down — model stays in the Horton-regulated regime. 50–70% calibration target requires inflow/outflow rebalancing beyond a simple coefficient change.
@@ -64,8 +71,9 @@ Goal: Verify that the generated code correctly implements the intended system lo
 
 ## Next Session: pick up here
 
-1. **Sensitivity parameter** — does it meaningfully differentiate Optimistic/Pessimistic scenarios? No test coverage yet.
-2. **soilWater calibration (deeper)** — Temperate equilibrates at ~85% vs 50–70% target. Requires reducing inflow coefficient (0.15) alongside transpiration, not just raising transpiration alone.
+1. **Sensitivity over-amplification** — SS-4 (ta=4, rb=0.7, 80yr) shows Pessimistic collapses to 0% biomass/soilWater while Optimistic holds 27%. That is plausible for a pessimistic scenario under stress, but the degree of collapse (full extinction vs viable forest) at only ta=4 may be too extreme. Decide: accept as a feature, or recalibrate sensitivity exponent to reduce the gap.
+2. **soilWater calibration (deeper)** — SS-1 shows Optimistic equilibrates at 90% biomass under neutral conditions. Combined with the known 85% soilWater baseline, the system may be over-productive under favourable conditions. Requires reducing inflow coefficient (0.15) alongside transpiration to bring Temperate neutral closer to 60–70% biomass target.
+3. **Core Assumption Validation phase complete** — all 4 subsystems have passing test suites (WM, FM, SL, SS). Next phase could be feature work or deeper calibration.
 
 ---
 
