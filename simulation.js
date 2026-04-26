@@ -172,21 +172,42 @@ window.onload = function () {
         oldGrowth:   document.getElementById('stat-old'),
         yearOverlay: document.getElementById('year-overlay'),
         btnPause:    document.getElementById('btn-pause'),
+        fps:         document.getElementById('stat-fps'),
+        simspeed:    document.getElementById('stat-simspeed'),
     };
 
     let isPaused = false;
     let rafId    = null;
     let lastTimestamp = 0;
 
+    // Performance counters — sampled once per second
+    let frameCount = 0, tickCount = 0, lastSample = 0;
+
     function loop(timestamp = 0) {
+        // Render every frame — decoupled from sim speed
+        draw(glState, engine);
+        frameCount++;
+
+        // Sample FPS and sim speed once per second
+        if (timestamp - lastSample >= 1000) {
+            const yrs = tickCount / 4;
+            els.fps.innerText      = frameCount + ' fps';
+            els.simspeed.innerText = (yrs >= 1 ? yrs.toFixed(0) : yrs.toFixed(1)) + ' yr/s';
+            frameCount = 0;
+            tickCount  = 0;
+            lastSample = timestamp;
+        }
+
+        // Advance simulation at the user-configured rate
         const elapsed  = timestamp - lastTimestamp;
         const interval = 1000 / engine.params.speed;
         if (elapsed >= interval) {
             lastTimestamp = timestamp - (elapsed % interval);
             engine.update();
-            draw(glState, engine);
+            tickCount++;
             updateUI(els, engine);
         }
+
         rafId = requestAnimationFrame(loop);
     }
 

@@ -222,9 +222,9 @@
         <div class="drawer-section">
             <div class="section-title">System</div>
             <label>
-                Render Speed (FPS)
-                <div class="help-icon">?<span class="tooltip-text">Simulation updates per second. Higher values run the model faster.
-                    <span class="def-val">Default: 60</span></span></div>
+                Simulation Speed
+                <div class="help-icon">?<span class="tooltip-text">Seasons advanced per second (4 seasons = 1 year). Render frame rate runs at display refresh speed independently and is not affected by this slider.
+                    <span class="def-val">Default: 60 ticks/s = 15 yr/s</span></span></div>
             </label>
             <input type="range" id="in-speed" min="1" max="60" value="60">
         </div>
@@ -278,6 +278,11 @@
         <div class="panel" style="font-size: 0.8rem;">
             <div class="metric-row"><span>Biomass:</span>    <span id="stat-biomass">0%</span></div>
             <div class="metric-row"><span>Old Growth:</span> <span id="stat-old">0%</span></div>
+        </div>
+
+        <div class="panel" style="font-size: 0.8rem;">
+            <div class="metric-row"><span>Render:</span>    <span id="stat-fps" style="color:#a29bfe">--</span></div>
+            <div class="metric-row"><span>Sim Speed:</span> <span id="stat-simspeed" style="color:#a29bfe">--</span></div>
         </div>
     </div>
 
