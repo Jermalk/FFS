@@ -158,6 +158,140 @@ function updateUI(els, engine) {
     els.statSensitivity.innerText = sv < 0.9 ? 'Optimistic' : sv > 1.1 ? 'Pessimistic' : 'Normal';
 }
 
+// ---- Save / Load -----------------------------------------------------------
+// ENGINE_COMMIT identifies the exact git commit that built this engine.
+// Update this to the short hash of the latest commit after each release.
+const ENGINE_COMMIT  = 'f042f90';
+const SCHEMA_VERSION = 1;
+
+function uint8ToB64(arr) {
+    const CHUNK = 0x8000;
+    let binary = '';
+    for (let i = 0; i < arr.length; i += CHUNK)
+        binary += String.fromCharCode(...arr.subarray(i, Math.min(i + CHUNK, arr.length)));
+    return btoa(binary);
+}
+
+function b64ToUint8(b64) {
+    const binary = atob(b64);
+    const out = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+    return out;
+}
+
+async function compressJSON(obj) {
+    const enc = new TextEncoder();
+    const cs  = new CompressionStream('gzip');
+    const w   = cs.writable.getWriter();
+    w.write(enc.encode(JSON.stringify(obj)));
+    w.close();
+    const chunks = [];
+    const r = cs.readable.getReader();
+    for (;;) { const { done, value } = await r.read(); if (done) break; chunks.push(value); }
+    return new Blob(chunks, { type: 'application/octet-stream' });
+}
+
+async function decompressJSON(blob) {
+    const ds  = blob.stream().pipeThrough(new DecompressionStream('gzip'));
+    const r   = ds.getReader();
+    const dec = new TextDecoder();
+    let text  = '';
+    for (;;) { const { done, value } = await r.read(); if (done) break; text += dec.decode(value, { stream: true }); }
+    text += dec.decode();
+    return JSON.parse(text);
+}
+
+function buildPayload(engine, history, events) {
+    return {
+        schemaVersion:  SCHEMA_VERSION,
+        engineCommit:   ENGINE_COMMIT,
+        savedAt:        new Date().toISOString(),
+        params:         { ...engine.params },
+        engine: {
+            year:            engine.year,
+            ticks:           engine.ticks,
+            season:          engine.season,
+            soilWater:       engine.soilWater,
+            floodIndex:      engine.floodIndex,
+            lastInflow:      engine.lastInflow,
+            lastOutflow:     engine.lastOutflow,
+            currentTemp:     engine.currentTemp,
+            currentRain:     engine.currentRain,
+            fireDangerIndex: engine.fireDangerIndex,
+            stats:           { ...engine.stats },
+            stateGrid:       uint8ToB64(engine.stateGrid),
+            ageGrid:         uint8ToB64(engine.ageGrid),
+        },
+        history: Object.fromEntries(Object.entries(history).map(([k, v]) => [k, Array.from(v)])),
+        events,
+    };
+}
+
+async function saveToFile(engine, history, events) {
+    const payload  = buildPayload(engine, history, events);
+    const blob     = await compressJSON(payload);
+    const dateStr  = new Date().toISOString().slice(0, 10);
+    const filename = `forest-yr${engine.year}-${dateStr}-${ENGINE_COMMIT}.fsc`;
+    const url      = URL.createObjectURL(blob);
+    const a        = Object.assign(document.createElement('a'), { href: url, download: filename });
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function applyPayload(payload, engine, history, events) {
+    const { engine: es, params, history: hist, events: evs } = payload;
+    Object.assign(engine.params, params);
+    engine.year            = es.year;
+    engine.ticks           = es.ticks;
+    engine.season          = es.season;
+    engine.soilWater       = es.soilWater;
+    engine.floodIndex      = es.floodIndex;
+    engine.lastInflow      = es.lastInflow;
+    engine.lastOutflow     = es.lastOutflow;
+    engine.currentTemp     = es.currentTemp;
+    engine.currentRain     = es.currentRain;
+    engine.fireDangerIndex = es.fireDangerIndex;
+    engine.stats           = { ...es.stats };
+    engine.stateGrid.set(b64ToUint8(es.stateGrid));
+    engine.ageGrid.set(b64ToUint8(es.ageGrid));
+    Object.keys(history).forEach(k => { history[k] = hist[k] ? [...hist[k]] : []; });
+    events.length = 0;
+    evs.forEach(e => events.push(e));
+}
+
+async function loadFromFile(file, engine, history, events, onDone) {
+    try {
+        const blob    = new Blob([await file.arrayBuffer()]);
+        const payload = await decompressJSON(blob);
+        if (payload.schemaVersion !== SCHEMA_VERSION)
+            console.warn(`Save schema v${payload.schemaVersion} loaded into engine expecting v${SCHEMA_VERSION}`);
+        applyPayload(payload, engine, history, events);
+        onDone(payload);
+    } catch (err) {
+        alert('Failed to load save file:\n' + err.message);
+    }
+}
+
+function syncUIToParams(params) {
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
+    const txt = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+    set('in-speed',      params.speed);
+    txt('val-speed',     params.speed + ' t/s');
+    set('in-temp-bias',  params.tempAnomaly);
+    txt('val-temp-bias', '+' + params.tempAnomaly.toFixed(1) + '°C');
+    set('in-rain-bias',  params.rainBias);
+    const rb = params.rainBias;
+    txt('val-rain-bias', (rb < 0.95 ? 'Drought' : rb > 1.05 ? 'Wet' : 'Normal') + ' (' + rb.toFixed(1) + '×)');
+    set('in-metabolism', params.basalMetabolism);
+    txt('val-metabolism', params.basalMetabolism.toFixed(3));
+    set('in-growth',     params.growthRate);
+    txt('val-growth',    params.growthRate.toFixed(1) + '×');
+    set('in-fire',       params.fireFreq);
+    txt('val-fire',      params.fireFreq.toFixed(1) + '×');
+    set('in-scenario',   params.sensitivity);
+    set('in-climate',    params.climateType);
+}
+
 // ---- History chart ---------------------------------------------------------
 
 const history = { year: [], temp: [], rain: [], soilWater: [], biomass: [], danger: [] };
@@ -556,6 +690,26 @@ window.onload = function () {
     document.getElementById('btn-chart').addEventListener('click', toggleChart);
     document.getElementById('btn-chart-close').addEventListener('click', toggleChart);
     window.addEventListener('resize', () => { if (chartVisible) renderChart(); });
+
+    // Save / Load
+    document.getElementById('btn-save').addEventListener('click', () => saveToFile(engine, history, events));
+
+    const fileInput = document.getElementById('load-file-input');
+    document.getElementById('btn-load').addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        if (!isPaused) togglePause();
+        loadFromFile(file, engine, history, events, (payload) => {
+            syncUIToParams(engine.params);
+            draw(glState, engine);
+            updateUI(els, engine);
+            if (chartVisible) renderChart();
+            const info = `Loaded: yr ${engine.year}  |  saved ${payload.savedAt.slice(0, 10)}  |  engine ${payload.engineCommit}`;
+            console.info(info);
+        });
+        fileInput.value = '';
+    });
 
     window.sim = engine; // expose for browser console debugging
 };

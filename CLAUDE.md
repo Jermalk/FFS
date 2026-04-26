@@ -63,6 +63,7 @@ The simulation uses a **cellular automaton** on an 800×600 grid rendered to a `
 ## Workflow
 
 - **Each logical change gets its own commit.** Keep commits small and focused so individual changes can be reviewed and reverted independently. Run commits automatically — do not ask the user to do it manually.
+- **After each commit, update `ENGINE_COMMIT`** in `simulation.js` to the short hash of that commit (`git rev-parse --short HEAD`), then include the update in the next commit. This keeps save files traceable to the exact engine state that produced them.
 - **Update `PROGRESS.md`** at the end of each session — note what was validated, what was changed, and any new findings.
 - **Update `PROGRESS.md` before context compaction.** If the conversation is approaching context limits (compaction imminent), write and commit a `PROGRESS.md` update immediately, before the compaction occurs.
 - **Update `README.md`** at the end of each session to reflect any new features, controls, test coverage, or status changes. README is the human-facing document for users without LLM support — keep it accurate and complete.

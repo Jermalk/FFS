@@ -96,6 +96,10 @@
         .btn-pause { background: #e1b12c; color: #000; }
         .btn-step  { background: #0984e3; color: #fff; }
         .btn-reset { background: #d63031; color: #fff; width: 100%; margin-top: 5px; }
+        .btn-save  { background: #00b894; color: #fff; }
+        .btn-save:hover  { background: #00cec9; }
+        .btn-load  { background: #636e72; color: #fff; }
+        .btn-load:hover  { background: #b2bec3; color: #000; }
 
         /* --- METRICS --- */
         .metric-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.85rem; }
@@ -278,6 +282,11 @@
                 <button class="btn-pause" id="btn-pause">Pause</button>
                 <button class="btn-step"  id="btn-step">+1 Yr</button>
             </div>
+            <div class="btn-group" style="margin-top:4px;">
+                <button class="btn-save" id="btn-save">Save State</button>
+                <button class="btn-load" id="btn-load">Load State</button>
+            </div>
+            <input type="file" id="load-file-input" accept=".fsc" style="display:none">
             <div class="metric-row"><span>Year:</span>   <span id="ui-year"   class="metric-val">0</span></div>
             <div class="metric-row"><span>Season:</span> <span id="ui-season" class="metric-val">Spring</span></div>
         </div>
