@@ -141,7 +141,9 @@ export class SimulationEngine {
             const excess = (this.soilWater - OPTIMAL) / (1 - OPTIMAL);
             moistureFactor = 1 - (excess * excess * 0.6);
         }
-        const pGrowth = 0.008 * moistureFactor * this.params.growthRate / sensitivity;
+        // Winter dormancy (S5): growth suppressed below 20°C, zero at ≤5°C
+        const growthTempFactor = Math.max(0, Math.min(1, (this.currentTemp - 5) / 15));
+        const pGrowth = 0.008 * moistureFactor * growthTempFactor * this.params.growthRate / sensitivity;
 
         let pLightning = 0.00001 * this.params.fireFreq;
         if (this.fireDangerIndex > 1.0) pLightning = 0.0002 * this.params.fireFreq;

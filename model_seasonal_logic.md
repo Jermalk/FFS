@@ -174,7 +174,9 @@ suppressing winter growth proportionally to how far below 20 °C the temperature
 
 **Cross-layer impact:** Vegetation (growth path only). No change to fire or water balance.
 
-**Status:** Open
+**Status:** Done — commit `fix(S5)`
+
+**Notes:** `growthTempFactor = clamp((currentTemp - 5) / 15, 0, 1)`. Zero at ≤5°C (full dormancy), 1 at ≥20°C (full growth potential). Summer growth unchanged. Boreal winter at −22°C: factor=0. Temperate winter at −3°C (after S6 preset): factor=0. Mediterranean winter at 10°C: factor=0.33 — partial suppression. Comment kept in code because the formula is a non-obvious design choice.
 
 ---
 
