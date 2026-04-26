@@ -161,7 +161,9 @@ Note: `stats.biomass` is computed at end of `update()` but `updateWeather()` run
 
 **Status:** Done — commit `fix/W3`
 
-**Coefficient revision:** Proposed value was 0.02, reduced to 0.012. W4 had already lowered the annual moisture surplus from +0.040 to +0.027; using 0.02 on the reduced surplus would push biomass equilibrium down to ~35% (too sparse). At 0.012, equilibrium sits at ~58% biomass — within the calibration target. Formula uses `Math.max(0, currentTemp/20)` so transpiration goes to zero at or below 0°C (stomatal closure in frost).
+**Coefficient revision (initial):** Proposed value was 0.02, reduced to 0.012. W4 had already lowered the annual moisture surplus from +0.040 to +0.027; using 0.02 on the reduced surplus would push biomass equilibrium down to ~35% (too sparse). At 0.012, equilibrium sat at ~58% biomass — within the calibration target. Formula uses `Math.max(0, currentTemp/20)` so transpiration goes to zero at or below 0°C (stomatal closure in frost).
+
+**Recalibration (Session 6):** After S1 fix restored summer rain and S6 changed Temperate BASE_TEMP from 20°C to 12°C, equilibrium drifted to ~89% soilWater. Root causes: (1) annual temp factor dropped from 4.0 to 2.55 (64% of old rate); (2) summer inflow increased by +0.084/yr. Annual surplus before transpiration rose from ~0.027 to +0.085/yr. Coefficient raised to 0.060 — this closes the +0.085 surplus at bf ≈ 0.95, with the coupled 2D equilibrium (growth + fire) expected to settle at soilWater 55–75% and biomass 60–80%.
 
 ---
 

@@ -155,7 +155,7 @@ export class SimulationEngine {
 
         // Transpiration scales with biomass (W3)
         const biomassFraction   = this.stats.biomass / this.size;
-        const transpirationRate = 0.012 * biomassFraction * Math.max(0, this.currentTemp / 20) * sensitivity;
+        const transpirationRate = 0.060 * biomassFraction * Math.max(0, this.currentTemp / 20) * sensitivity;
 
         const outflow = basalMetabolism + tempEvap + transpirationRate;
 

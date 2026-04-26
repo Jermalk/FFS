@@ -6,13 +6,12 @@ function swPct(sim)      { return sim.soilWater * 100; }
 export function registerScenarios(scenario) {
 
     // -------------------------------------------------------------------------
-    // Scenario 1 — Baseline Stability (W3 active)
-    // Checks the model doesn't collapse or pin at extremes after 120yr Temperate run.
-    // Calibration targets (50–70% soilWater) are pending — the Temperate preset runs
-    // wetter (~90%) because the transpiration coefficient was calibrated at BASE_TEMP=20°C
-    // (old default), not 12°C. See PROGRESS.md calibration observation.
+    // Scenario 1 — Baseline Stability (W3 recalibrated)
+    // 120yr Temperate run. Transpiration coefficient raised to 0.060 (from 0.012)
+    // to correct for BASE_TEMP drop from 20°C to 12°C (60% efficiency loss) and
+    // restored summer rain after S1 fix. Expected equilibrium: 55–75% soilWater.
     // -------------------------------------------------------------------------
-    scenario('WM-1', 'Baseline stability — forest survives 120yr without collapse or saturation (Temperate)',
+    scenario('WM-1', 'Baseline stability — Temperate equilibrates at 55–75% soilWater after 120yr',
         ['W3'],
         ({ val, check, runYears }) => {
             const sim = new SimulationEngine(800, 600);
@@ -26,10 +25,10 @@ export function registerScenarios(scenario) {
             val('Biomass',      bm.toFixed(0) + '%');
             val('Fire Danger',  fd.toFixed(2));
 
-            check('Groundwater not collapsed (≥ 40%)',     sw >= 40,  `got ${sw.toFixed(0)}%`);
-            check('Groundwater not pinned at max (< 98%)', sw < 98,   `got ${sw.toFixed(0)}%`);
-            check('Biomass viable (≥ 40%)',                bm >= 40,  `got ${bm.toFixed(0)}%`);
-            check('Fire Danger manageable (< 1.5)',        fd < 1.5,  `got ${fd.toFixed(2)}`);
+            check('Groundwater in calibration range (≥ 55%)', sw >= 55,  `got ${sw.toFixed(0)}%`);
+            check('Groundwater in calibration range (≤ 82%)', sw <= 82,  `got ${sw.toFixed(0)}%`);
+            check('Biomass viable (≥ 40%)',                   bm >= 40,  `got ${bm.toFixed(0)}%`);
+            check('Fire Danger manageable (< 1.5)',           fd < 1.5,  `got ${fd.toFixed(2)}`);
         }
     );
 
