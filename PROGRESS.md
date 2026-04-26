@@ -45,6 +45,76 @@ Goal: Verify that the generated code correctly implements the intended system lo
 - **Problem:** Offsets like `-width-1` applied to edge cells go out of bounds. `Uint8Array[out-of-bounds]` returns `undefined`, which is falsy — so fires never "wrap" but the check is semantically wrong and may interact with type coercion unexpectedly.
 - **Status:** Identified, not yet fixed. Will fix as its own commit.
 
+## Next Session Brief — Test Framework Implementation
+
+**Goal:** Build a unified, modular test framework for all validation suites.
+Full design agreed in session 3. Implement in this order, one commit per step:
+
+### Step 1 — `issues.js` (registry)
+Single source of truth for all model issues across all subsystems.
+```javascript
+export const ISSUES = {
+    W1: { doc: 'model_water.md',          title: 'Waterlogging causes zero mortality',   status: 'fixed' },
+    // ... W2–W5 ...
+    S1: { doc: 'model_seasonal_logic.md', title: 'Summer rain can reach zero',           status: 'fixed' },
+    // ... S2–S6 ...
+    // F1, F2... added when fire mechanics work begins
+};
+```
+Enables: framework validates `covers` IDs exist; JSON output embeds full issue context; gap detector spots uncovered issues.
+
+### Step 2 — `test_framework.js`
+Shared module imported by all test pages. Provides:
+- `createSuite(id, title)` → returns `{ scenario, run }`
+- `scenario(id, title, covers[], fn)` — `covers` is array of ISSUES keys; framework validates each ID exists
+- `fn` receives `{ val, check, runYears, clearGrid, countTrees }` — injected helpers
+- On completion: renders HTML, builds result JSON (with full issue context from registry), shows Download button
+- Gap report at bottom: which ISSUES IDs have no test covering them (across this suite)
+- Commit hash input field; pre-fills filename as `{suite}_{YYYY-MM-DD}_{commit}.json`
+
+### Step 3 — Refactor `test_seasonal.htm`
+Replace inline framework with `import { createSuite } from './test_framework.js'`. Scenarios move to `tests/seasonal_logic.js`. Shell becomes ~5 lines.
+
+### Step 4 — Refactor `test.htm`
+Same treatment for water model. Scenarios move to `tests/water_model.js`.
+
+### Step 5 — `test_results/` directory structure
+```
+test_results/
+  water_model/        ← committed JSON result files
+  seasonal_logic/     ← committed JSON result files
+  fire_mechanics/     ← (placeholder for future)
+```
+Re-run both suites after refactor to confirm still 42/42 and W-suite pass. Commit result JSONs.
+
+### Design decisions locked
+- **Per-suite `.htm` files** (not universal) — simpler loader, no dropdown complexity
+- **`covers` tags reference `ISSUES` keys** — framework rejects unknown IDs at run time
+- **Result JSON committed to repo** — full audit trail in git; filename = `{suite}_{date}_{commit}.json`
+- **No SESSION_TEMPORARY.md** — git log + PROGRESS.md + model docs give sufficient recovery; PROGRESS.md committed at key milestones within sessions
+- **Result JSON schema:**
+```json
+{
+  "suite": "seasonal_logic",
+  "timestamp": "2026-04-26T...",
+  "commit": "fa18e9f",
+  "passed": 42, "failed": 0, "total": 42,
+  "uncovered_issues": [],
+  "scenarios": [{
+    "id": "SL-1", "title": "...",
+    "covers": [{ "id": "S1", "title": "...", "doc": "...", "status": "fixed" }],
+    "passed": 15, "failed": 0,
+    "values": [{ "label": "...", "value": "..." }],
+    "checks": [{ "label": "...", "pass": true, "detail": "..." }]
+  }]
+}
+```
+
+### Calibration observation (from SL-5 results)
+Temperate soil water = 90% after 50yr — above target range (50–70%). Flagged for future calibration; not blocking current validation work.
+
+---
+
 ## Session 3 Work (2026-04-26)
 
 ### Seasonal Logic — all 6 issues resolved
