@@ -161,7 +161,7 @@ function updateUI(els, engine) {
 // ---- Save / Load -----------------------------------------------------------
 // ENGINE_COMMIT identifies the exact git commit that built this engine.
 // Update this to the short hash of the latest commit after each release.
-const ENGINE_COMMIT  = 'f042f90';
+const ENGINE_COMMIT  = '122d7e0';
 const SCHEMA_VERSION = 1;
 
 function uint8ToB64(arr) {
