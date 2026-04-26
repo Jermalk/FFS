@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Water Model — Test Runner</title>
+    <style>
+        body { margin: 0; background: #0d0d0d; color: #ccc; font-family: 'Roboto Mono', monospace; padding: 20px; }
+        h1 { color: #fff; font-size: 1.1rem; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px; }
+        .scenario { background: #151515; border: 1px solid #333; border-radius: 4px; padding: 15px; margin-bottom: 15px; }
+        .scenario-title { font-weight: bold; color: #a29bfe; margin-bottom: 10px; }
+        .row { display: flex; gap: 20px; font-size: 0.85rem; margin-bottom: 4px; }
+        .label { color: #888; min-width: 220px; }
+        .value { color: #fff; font-family: monospace; }
+        .pass { color: #00ff00; font-weight: bold; }
+        .fail { color: #ff4757; font-weight: bold; }
+        .separator { border: none; border-top: 1px solid #333; margin: 8px 0; }
+        #summary { font-size: 1rem; font-weight: bold; padding: 12px; border-radius: 4px; margin-top: 10px; }
+        #summary.all-pass { background: #1a3a1a; color: #00ff00; border: 1px solid #00ff00; }
+        #summary.has-fail  { background: #3a1a1a; color: #ff4757; border: 1px solid #ff4757; }
+        #running { color: #fab1a0; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <h1>Water Model — Behaviour Tests (W1–W5)</h1>
+    <div id="running">Running scenarios… (this may take 15–30 seconds)</div>
+    <div id="output"></div>
+    <div id="summary"></div>
+
+<script type="module">
+import { SimulationEngine } from './simulation-engine.js';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function runYears(sim, years) {
+    const ticks = years * 4;
+    for (let i = 0; i < ticks; i++) sim.update();
+}
+
+function biomassPct(sim) {
+    return sim.stats.biomass / sim.size * 100;
+}
+
+function swPct(sim) {
+    return sim.soilWater * 100;
+}
+
+let passed = 0, failed = 0;
+const out = document.getElementById('output');
+
+function scenario(title, fn) {
+    const div = document.createElement('div');
+    div.className = 'scenario';
+    div.innerHTML = `<div class="scenario-title">${title}</div>`;
+    out.appendChild(div);
+
+    const checks = [];
+    const values = [];
+
+    function val(label, v) {
+        values.push({ label, v });
+    }
+
+    function check(label, condition, detail) {
+        if (condition) {
+            passed++;
+            checks.push(`<div class="row"><span class="label">${label}</span><span class="pass">PASS</span>${detail ? '<span class="value" style="margin-left:10px;color:#888">'+detail+'</span>' : ''}</div>`);
+        } else {
+            failed++;
+            checks.push(`<div class="row"><span class="label">${label}</span><span class="fail">FAIL</span>${detail ? '<span class="value" style="margin-left:10px;color:#ff4757">'+detail+'</span>' : ''}</div>`);
+        }
+    }
+
+    fn(val, check);
+
+    const valHtml = values.map(({ label, v }) =>
+        `<div class="row"><span class="label">${label}</span><span class="value">${v}</span></div>`
+    ).join('');
+
+    div.innerHTML += valHtml + '<hr class="separator">' + checks.join('');
+}
+
+// ---------------------------------------------------------------------------
+// Scenario 1 — Baseline Calibration
+// Targets: W3 biomass equilibrium; healthy water balance at default settings
+// ---------------------------------------------------------------------------
+scenario('Scenario 1 — Baseline Calibration (120 years, defaults)', (val, check) => {
+    const sim = new SimulationEngine(800, 600);
+    runYears(sim, 120);
+
+    const sw = swPct(sim);
+    const bm = biomassPct(sim);
+    const fd = sim.fireDangerIndex;
+
+    val('Groundwater',  sw.toFixed(0) + '%');
+    val('Biomass',      bm.toFixed(0) + '%');
+    val('Fire Danger',  fd.toFixed(2));
+
+    check('Groundwater 45–75%',   sw >= 45 && sw <= 75,   `got ${sw.toFixed(0)}%`);
+    check('Biomass 45–70%',       bm >= 45 && bm <= 70,   `got ${bm.toFixed(0)}%`);
+    check('Fire Danger < 1.5',    fd < 1.5,                `got ${fd.toFixed(2)}`);
+});
+
+// ---------------------------------------------------------------------------
+// Scenario 2 — Max Rain Bias
+// Targets: W4 + W1 + W2; soilWater must NOT pin at 100%
+// ---------------------------------------------------------------------------
+scenario('Scenario 2 — Max Rain Bias (100 years, rainBias=2.0)', (val, check) => {
+    const sim = new SimulationEngine(800, 600);
+    sim.params.rainBias = 2.0;
+    runYears(sim, 100);
+
+    const sw = swPct(sim);
+    const bm = biomassPct(sim);
+
+    val('Groundwater (stabilised)', sw.toFixed(0) + '%');
+    val('Biomass',                  bm.toFixed(0) + '%');
+
+    check('Groundwater not pinned at 100% (< 98%)', sw < 98, `got ${sw.toFixed(0)}%`);
+    check('Groundwater not collapsed (> 40%)',       sw > 40, `got ${sw.toFixed(0)}%`);
+    check('Biomass exists (> 20%)',                  bm > 20, `got ${bm.toFixed(0)}%`);
+});
+
+// ---------------------------------------------------------------------------
+// Scenario 3 — Drought Stress
+// Targets: drought dieback; W3 transpiration accelerates collapse
+// Phase 1: build forest (30 yr default) → Phase 2: max stress
+// ---------------------------------------------------------------------------
+scenario('Scenario 3 — Drought Stress (30yr build + 30yr max drought)', (val, check) => {
+    const sim = new SimulationEngine(800, 600);
+    runYears(sim, 30);
+
+    const bmAtOnset = biomassPct(sim);
+    const swAtOnset = swPct(sim);
+
+    val('Biomass at drought onset', bmAtOnset.toFixed(0) + '%');
+    val('Groundwater at onset',     swAtOnset.toFixed(0) + '%');
+
+    sim.params.tempAnomaly = 10;
+    sim.params.rainBias    = 0.1;
+    runYears(sim, 30);
+
+    const swFinal = swPct(sim);
+    const bmFinal = biomassPct(sim);
+    const fd      = sim.fireDangerIndex;
+
+    val('Groundwater after 30yr drought', swFinal.toFixed(0) + '%');
+    val('Biomass after 30yr drought',     bmFinal.toFixed(0) + '%');
+    val('Fire Danger',                    fd.toFixed(2));
+
+    check('Biomass collapses to < 30%',   bmFinal < 30,  `got ${bmFinal.toFixed(0)}%`);
+    check('Groundwater depleted (< 25%)', swFinal < 25,  `got ${swFinal.toFixed(0)}%`);
+    check('Fire Danger elevated (> 1.0)', fd > 1.0,      `got ${fd.toFixed(2)}`);
+});
+
+// ---------------------------------------------------------------------------
+// Scenario 4 — Flood Suppresses Fire
+// Targets: W5 floodIndex; high rain keeps fireDangerIndex low
+// ---------------------------------------------------------------------------
+scenario('Scenario 4 — Max Rain Suppresses Fire (20 years, rainBias=2.0, pessimistic)', (val, check) => {
+    const sim = new SimulationEngine(800, 600);
+    sim.params.rainBias    = 2.0;
+    sim.params.sensitivity = 1.5;
+
+    // Sample average fire danger over the last year after 20yr run
+    runYears(sim, 19);
+    let fdSum = 0;
+    for (let i = 0; i < 4; i++) { sim.update(); fdSum += sim.fireDangerIndex; }
+    const fdAvg = fdSum / 4;
+    const sw    = swPct(sim);
+
+    val('Groundwater',         sw.toFixed(0) + '%');
+    val('Avg Fire Danger',     fdAvg.toFixed(3));
+
+    // Compare: same run without rain boost would have much higher fire danger
+    const simDry = new SimulationEngine(800, 600);
+    simDry.params.sensitivity = 1.5;
+    runYears(simDry, 19);
+    let fdDrySum = 0;
+    for (let i = 0; i < 4; i++) { simDry.update(); fdDrySum += simDry.fireDangerIndex; }
+    const fdDryAvg = fdDrySum / 4;
+
+    val('Avg Fire Danger (normal rain, for comparison)', fdDryAvg.toFixed(3));
+
+    check('High rain lowers fire danger vs normal rain', fdAvg < fdDryAvg,
+        `wet=${fdAvg.toFixed(3)} vs normal=${fdDryAvg.toFixed(3)}`);
+    check('Fire Danger not EXTREME under heavy rain (< 1.5)', fdAvg < 1.5,
+        `got ${fdAvg.toFixed(3)}`);
+});
+
+// ---------------------------------------------------------------------------
+// Scenario 5 — Dense vs Sparse Forest Under Drought
+// Targets: W3 transpiration; dense forest depletes soilWater faster under stress
+// ---------------------------------------------------------------------------
+scenario('Scenario 5 — Dense vs Sparse Forest Under Drought (W3 transpiration feedback)', (val, check) => {
+    // 5a: dense — 60 years of growth
+    const sim5a = new SimulationEngine(800, 600);
+    runYears(sim5a, 60);
+    const bm5a = biomassPct(sim5a);
+    const sw5a_start = sim5a.soilWater;
+
+    // 5b: sparse — 5 years of growth
+    const sim5b = new SimulationEngine(800, 600);
+    runYears(sim5b, 5);
+    const bm5b = biomassPct(sim5b);
+    const sw5b_start = sim5b.soilWater;
+
+    val('Dense biomass at drought onset',  bm5a.toFixed(0) + '%');
+    val('Sparse biomass at drought onset', bm5b.toFixed(0) + '%');
+    val('Dense groundwater at onset',      (sw5a_start*100).toFixed(0) + '%');
+    val('Sparse groundwater at onset',     (sw5b_start*100).toFixed(0) + '%');
+
+    // Apply moderate drought to both (not max, so soilWater doesn't hit 0 immediately)
+    sim5a.params.tempAnomaly = 6;
+    sim5a.params.rainBias    = 0.2;
+    sim5b.params.tempAnomaly = 6;
+    sim5b.params.rainBias    = 0.2;
+
+    // Measure cumulative outflow over the first drought year (direct transpiration signal)
+    let out5a = 0, out5b = 0;
+    for (let i = 0; i < 4; i++) {
+        sim5a.update(); out5a += sim5a.lastOutflow;
+        sim5b.update(); out5b += sim5b.lastOutflow;
+    }
+
+    // Also check soilWater after 5 drought years
+    runYears(sim5a, 4);
+    runYears(sim5b, 4);
+    const sw5a_end = swPct(sim5a);
+    const sw5b_end = swPct(sim5b);
+
+    val('Dense outflow (yr 1 of drought)',  out5a.toFixed(4));
+    val('Sparse outflow (yr 1 of drought)', out5b.toFixed(4));
+    val('Dense groundwater after 5yr drought',  sw5a_end.toFixed(0) + '%');
+    val('Sparse groundwater after 5yr drought', sw5b_end.toFixed(0) + '%');
+
+    check('Dense forest has higher water outflow than sparse (transpiration)',
+        out5a > out5b, `dense=${out5a.toFixed(4)} sparse=${out5b.toFixed(4)}`);
+    check('Dense forest more depleted after 5yr drought',
+        sw5a_end <= sw5b_end, `dense=${sw5a_end.toFixed(0)}% sparse=${sw5b_end.toFixed(0)}%`);
+});
+
+// ---------------------------------------------------------------------------
+// Summary
+// ---------------------------------------------------------------------------
+document.getElementById('running').style.display = 'none';
+
+const summary = document.getElementById('summary');
+const total = passed + failed;
+if (failed === 0) {
+    summary.className = 'all-pass';
+    summary.innerText = `All ${total} checks passed`;
+} else {
+    summary.className = 'has-fail';
+    summary.innerText = `${failed} of ${total} checks FAILED`;
+}
+</script>
+</body>
+</html>
