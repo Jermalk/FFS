@@ -19,6 +19,7 @@ Then open:
 - `localhost:8080/test/water/` — Water Model (WM-1 to WM-5)
 - `localhost:8080/test/fire/` — Fire Mechanics (FM-1 to FM-5)
 - `localhost:8080/test/seasons/` — Seasonal Logic (SL-1 to SL-6)
+- `localhost:8080/test/sensitivity/` — Sensitivity Parameter (SS-1 to SS-4)
 
 ## Architecture
 

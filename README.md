@@ -98,7 +98,7 @@ Click **🗠 History Charts** any time to see the full run plotted across four b
 3. **Biomass** — tree cover fraction over time
 4. **Fire Danger** — the composite fire risk index
 
-The chart covers the entire run. Close it with **×** to return to the live simulation.
+Each band shows **event markers** (fire events, drought events) as labelled flags, **proportional gridlines** scaled to the data range, and a **"now" cursor** tracking the current simulation tick. Close with **×** to return to the live simulation.
 
 ---
 
@@ -169,6 +169,7 @@ Then open in your browser:
 | `http://localhost:8080/test/water/` | Water model | WM-1 to WM-5 (15 checks) |
 | `http://localhost:8080/test/fire/` | Fire mechanics | FM-1 to FM-5 (13 checks) |
 | `http://localhost:8080/test/seasons/` | Seasonal logic | SL-1 to SL-6 (42 checks) |
+| `http://localhost:8080/test/sensitivity/` | Sensitivity parameter | SS-1 to SS-4 (12 checks) |
 
 Each page runs all scenarios automatically and shows PASS / FAIL per check. A **Download JSON** button at the bottom lets you save a timestamped result file.
 
@@ -205,6 +206,7 @@ test_results/
 model_water.md         ← water subsystem design & issue log
 model_seasonal_logic.md ← seasonal/climate design & issue log
 model_fire.md          ← fire subsystem design & issue log
+test_water_model.md    ← early water model test spec (pre-framework)
 PROGRESS.md            ← session-by-session development log
 ```
 
