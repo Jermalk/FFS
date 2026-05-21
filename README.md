@@ -1,4 +1,4 @@
-# Forest Ecosystem Simulator
+# Forest Fire Simulator
 
 A browser-based cellular automaton that models a living forest — trees grow, burn, recover, and collapse under the pressure of climate change.
 
