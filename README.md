@@ -2,6 +2,10 @@
 
 A browser-based cellular automaton that models a living forest — trees grow, burn, recover, and collapse under the pressure of climate change.
 
+![Forest Fire Simulator — main view](pics/FFS_main.png)
+
+![Forest Fire Simulator — history charts](pics/FFS_stats.png)
+
 ---
 
 ## Quick Start
