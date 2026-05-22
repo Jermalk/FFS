@@ -2,6 +2,39 @@
 
 Tracks validation work and design decisions across sessions.
 
+---
+
+## Session 7 Work (2026-05-22)
+
+### Repository published to GitHub (github.com/Jermalk/FFS)
+
+- Generated SSH key (`ed25519`) and added it to GitHub account
+- Added remote `git@github.com:Jermalk/FFS.git` and pushed all 60 commits
+- Repo name confirmed as FFS (Forest Fire Simulator)
+
+### README and CLAUDE.md synchronised with actual project state
+
+- Added sensitivity test suite (SS-1 to SS-4, 12 checks) to test table — it was missing
+- Added chart features (event markers, proportional gridlines, now-cursor) to History Charts section
+- Added `test_water_model.md` to file layout section
+- Added sensitivity suite URL to CLAUDE.md Running Tests list
+- Renamed README title from "Forest Ecosystem Simulator" to "Forest Fire Simulator" to match repo name
+- Added two screenshots (`pics/FFS_main.png`, `pics/FFS_stats.png`) to README
+
+### Story.md written
+
+- Narrative article covering all major technical pivot points across the project history
+- Excluded from git via `.gitignore` (author's working document)
+- Covers: renderer pivot (Canvas2D → WebGL2), water model five bugs, seasonal mean-drift bugs, fire boundary read, lightning step-function, test framework design, sensitivity compounding, save/load, bundle
+
+### Next session: pick up here
+
+1. **Sensitivity over-amplification** — Normal scenario at ta=4 survives at only 4% biomass; decide accept or recalibrate
+2. **soilWater calibration (deeper)** — Temperate neutral equilibrates at ~85% soilWater vs 50–70% target; requires reducing inflow coefficient alongside transpiration
+3. **Core Assumption Validation phase** — all 4 subsystems green; next phase could be feature work or deeper calibration
+
+---
+
 ## Project Background
 
 Forest ecosystem cellular automaton simulator. Built by Jerzy (system designer) using Gemini for code generation. Jerzy designed the simulation logic; the code implements his intent.
